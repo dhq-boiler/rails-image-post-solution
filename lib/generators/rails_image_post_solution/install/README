@@ -1,0 +1,27 @@
+===============================================================================
+
+RailsImagePostSolution has been installed!
+
+Next steps:
+
+1. Run migrations:
+   rails db:migrate
+
+2. Configure OpenAI API key in config/initializers/rails_image_post_solution.rb
+   or set OPENAI_API_KEY environment variable
+
+3. Mount the engine in config/routes.rb:
+   mount RailsImagePostSolution::Engine => "/moderation"
+
+4. Add authentication to your ApplicationController (if not already present):
+   - current_user method
+   - admin? method on User model
+
+5. (Optional) Add freeze_post! method to your models that have images:
+   def freeze_post!(type:, reason:)
+     # Your implementation
+   end
+
+For more information, see: https://github.com/your-username/rails-image-post-solution
+
+===============================================================================

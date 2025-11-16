@@ -1,0 +1,10 @@
+en:
+  rails_image_post_solution:
+    image_report:
+      categories:
+        r18: "R18 (Adult Content)"
+        r18g: "R18G (Grotesque)"
+        copyright: "Copyright Infringement"
+        spam: "Spam"
+        harassment: "Harassment"
+        other: "Other"

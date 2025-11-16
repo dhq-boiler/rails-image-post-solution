@@ -1,0 +1,10 @@
+ja:
+  rails_image_post_solution:
+    image_report:
+      categories:
+        r18: "R18（成人向けコンテンツ）"
+        r18g: "R18G（グロテスク）"
+        copyright: "著作権侵害"
+        spam: "スパム"
+        harassment: "嫌がらせ"
+        other: "その他"

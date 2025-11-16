@@ -1,0 +1,164 @@
+<div class="admin-container">
+  <h1 class="admin-header">通報詳細</h1>
+
+  <div class="report-detail">
+    <!-- 画像表示 -->
+    <div class="detail-section">
+      <h3>通報された画像</h3>
+      <% if @attachment.present? %>
+        <div class="reported-image-container">
+          <%= image_tag @attachment.blob, class: "reported-image-large", style: "max-width: 800px; max-height: 600px;" %>
+        </div>
+      <% else %>
+        <p class="text-muted">画像が削除されています</p>
+      <% end %>
+    </div>
+
+    <!-- 通報情報 -->
+    <div class="detail-section">
+      <h3>通報情報</h3>
+      <table class="detail-table">
+        <tr>
+          <th>ステータス</th>
+          <td>
+            <span class="status-badge status-<%= @report.status %>">
+              <%= case @report.status
+                  when RailsImagePostSolution::ImageReport::STATUSES[:pending] then "未確認"
+                  when RailsImagePostSolution::ImageReport::STATUSES[:confirmed] then "不適切"
+                  when RailsImagePostSolution::ImageReport::STATUSES[:dismissed] then "却下"
+                  when RailsImagePostSolution::ImageReport::STATUSES[:reviewed] then "レビュー済み"
+                  end %>
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <th>通報者</th>
+          <td>
+            <% if @report.user %>
+              <%= @report.user.try(:display_name) || @report.user.try(:name) || "Unknown" %>
+            <% else %>
+              <span class="text-muted">システム（AI自動判定）</span>
+            <% end %>
+          </td>
+        </tr>
+        <tr>
+          <th>通報理由</th>
+          <td><%= simple_format(@report.reason) || "理由なし" %></td>
+        </tr>
+        <tr>
+          <th>通報日時</th>
+          <td><%= l(@report.created_at, format: :long) %></td>
+        </tr>
+        <% if @report.reviewed_by %>
+          <tr>
+            <th>レビュー者</th>
+            <td><%= @report.reviewed_by.try(:display_name) || @report.reviewed_by.try(:name) || "Unknown" %></td>
+          </tr>
+          <tr>
+            <th>レビュー日時</th>
+            <td><%= l(@report.reviewed_at, format: :long) %></td>
+          </tr>
+        <% end %>
+        <% if @report.ai_flagged %>
+          <tr>
+            <th>AI判定</th>
+            <td>
+              <span class="badge badge-warning">AI検出</span>
+              <% if @report.ai_confidence %>
+                信頼度: <%= (@report.ai_confidence * 100).round(1) %>%
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </table>
+    </div>
+
+    <!-- 投稿者情報 -->
+    <% if @reported_user %>
+      <div class="detail-section">
+        <h3>画像投稿者</h3>
+        <table class="detail-table">
+          <tr>
+            <th>ユーザー名</th>
+            <td><%= @reported_user.try(:display_name) || @reported_user.try(:name) || "Unknown" %></td>
+          </tr>
+          <% if @reported_user.respond_to?(:banned?) %>
+            <tr>
+              <th>ステータス</th>
+              <td>
+                <% if @reported_user.banned? %>
+                  <span class="user-status-badge banned">BAN済み</span>
+                <% elsif @reported_user.respond_to?(:suspended?) && @reported_user.suspended? %>
+                  <span class="user-status-badge suspended">停止中</span>
+                <% else %>
+                  <span class="user-status-badge active">アクティブ</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </table>
+      </div>
+    <% end %>
+
+    <!-- 同じ画像の他の通報 -->
+    <div class="detail-section">
+      <h3>この画像への全通報（<%= @all_reports.count %>件）</h3>
+      <% if @all_reports.count > 1 %>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>通報者</th>
+              <th>理由</th>
+              <th>ステータス</th>
+              <th>通報日時</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @all_reports.each do |r| %>
+              <tr class="<%= 'current-report' if r.id == @report.id %>">
+                <td>
+                  <% if r.user %>
+                    <%= r.user.try(:display_name) || r.user.try(:name) || "Unknown" %>
+                  <% else %>
+                    <span class="text-muted">システム</span>
+                  <% end %>
+                  <% if r.id == @report.id %>
+                    <span class="badge-current">(現在)</span>
+                  <% end %>
+                </td>
+                <td><%= truncate(r.reason, length: 50) || "理由なし" %></td>
+                <td>
+                  <span class="status-badge status-<%= r.status %>">
+                    <%= case r.status
+                        when RailsImagePostSolution::ImageReport::STATUSES[:pending] then "未確認"
+                        when RailsImagePostSolution::ImageReport::STATUSES[:confirmed] then "不適切"
+                        when RailsImagePostSolution::ImageReport::STATUSES[:dismissed] then "却下"
+                        when RailsImagePostSolution::ImageReport::STATUSES[:reviewed] then "レビュー済み"
+                        end %>
+                  </span>
+                </td>
+                <td><%= l(r.created_at, format: :long) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="text-muted">この画像への通報は1件のみです</p>
+      <% end %>
+    </div>
+
+    <!-- アクション -->
+    <div class="detail-actions">
+      <% if @report.status == RailsImagePostSolution::ImageReport::STATUSES[:pending] %>
+        <%= button_to "不適切と判定", rails_image_post_solution.confirm_admin_image_report_path(@report), method: :patch, class: "btn btn-danger", data: { turbo_confirm: "この画像を不適切と判定しますか？" } %>
+        <%= button_to "却下（問題なし）", rails_image_post_solution.dismiss_admin_image_report_path(@report), method: :patch, class: "btn btn-success", data: { turbo_confirm: "この通報を却下しますか？" } %>
+      <% else %>
+        <p class="text-muted">この通報は既にレビュー済みです</p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="admin-actions">
+    <%= link_to "通報一覧に戻る", rails_image_post_solution.admin_image_reports_path, class: "btn btn-default" %>
+  </div>
+</div>
