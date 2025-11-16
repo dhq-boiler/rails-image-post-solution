@@ -32,7 +32,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Dependencies
-  spec.add_dependency "rails", ">= 7.0", "< 8.0"
+  spec.add_dependency "rails", ">= 8.1"
   spec.add_dependency "ruby-openai", "~> 6.0"
 
   # Development dependencies
