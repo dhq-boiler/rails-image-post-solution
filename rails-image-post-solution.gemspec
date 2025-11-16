@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "A complete solution for image reporting, AI-powered moderation using OpenAI Vision API, and admin dashboard for Rails applications with Active Storage."
   spec.homepage = "https://github.com/dhq-boiler/rails-image-post-solution"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.2.0"
+  spec.required_ruby_version = ">= 3.4.7"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/dhq-boiler/rails-image-post-solution"
