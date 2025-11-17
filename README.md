@@ -298,6 +298,20 @@ end
 
 The engine provides the following routes when mounted at `/moderation`:
 
+### Using Route Helpers
+
+The engine automatically makes route helpers available in your application. You can use them directly:
+
+```ruby
+# In your views or controllers
+admin_image_reports_path          # => /moderation/admin/image_reports
+admin_user_path(@user)             # => /moderation/admin/users/:id
+image_reports_path                 # => /moderation/image_reports
+
+# Or use the engine namespace explicitly
+rails_image_post_solution.admin_image_reports_path
+```
+
 ### User-Facing Routes
 
 ```
