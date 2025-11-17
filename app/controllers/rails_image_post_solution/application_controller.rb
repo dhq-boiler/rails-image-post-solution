@@ -5,8 +5,8 @@ module RailsImagePostSolution
     # Engine's base controller inherits from host application's ApplicationController
     # This allows the engine to use the host app's authentication methods
 
-    # Prepend engine's view path
-    prepend_view_path Engine.root.join("app", "views")
+    # Add engine view path before rendering
+    before_action :add_engine_view_path
 
     # Override require_login to use main_app routes
     def require_login
@@ -25,6 +25,19 @@ module RailsImagePostSolution
       unless current_user.admin?
         redirect_to main_app.root_path, alert: I18n.t("errors.messages.admin_required")
       end
+    end
+
+    private
+
+    def add_engine_view_path
+      prepend_view_path Engine.root.join("app", "views")
+    end
+
+    # Make main_app available as a helper
+    helper_method :main_app
+
+    def main_app
+      Rails.application.routes.url_helpers
     end
   end
 end
