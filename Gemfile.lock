@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rails-image-post-solution (0.1.19)
+    rails-image-post-solution (0.1.20)
       rails (>= 8.1)
       ruby-openai (~> 6.0)
 
