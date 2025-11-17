@@ -14,10 +14,15 @@ module RailsImagePostSolution
       #{root}/app/controllers
     ]
 
-    # Prepend view paths so engine views are found
-    initializer "rails_image_post_solution.view_paths" do
+    # Prepend view paths so engine views are found from host app
+    initializer "rails_image_post_solution.view_paths", before: :load_config_initializers do |app|
+      # Add engine views to all view paths
       ActiveSupport.on_load(:action_controller) do
-        prepend_view_path Engine.root.join("app", "views")
+        append_view_path RailsImagePostSolution::Engine.root.join("app", "views")
+      end
+
+      ActiveSupport.on_load(:action_view) do
+        ActionView::Base.prepend_view_path RailsImagePostSolution::Engine.root.join("app", "views")
       end
     end
 
