@@ -9,6 +9,11 @@ module RailsImagePostSolution
     # Explicitly set engine root
     config.root = File.expand_path('../..', __dir__)
 
+    # Explicitly autoload the Admin module before controllers
+    config.before_initialize do
+      require_dependency Engine.root.join('app/controllers/rails_image_post_solution/admin.rb')
+    end
+
     # Load routes when engine is initialized
     config.after_initialize do
       routes_path = RailsImagePostSolution::Engine.root.join("config", "routes.rb")
