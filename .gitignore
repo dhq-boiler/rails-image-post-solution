@@ -13,3 +13,4 @@
 
 # Ignore built gem files
 *.gem
+.claude/settings.json

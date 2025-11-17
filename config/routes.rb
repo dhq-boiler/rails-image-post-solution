@@ -2,7 +2,8 @@
 
 RailsImagePostSolution::Engine.routes.draw do
   # Support optional locale parameter to match host application's routing
-  scope "(:locale)", locale: /#{I18n.available_locales.join("|")}/ do
+  # Accept any 2-letter locale code to be flexible with host app's locales
+  scope "(:locale)", locale: /[a-z]{2}/ do
     # User-facing report API
     resources :image_reports, only: [ :create ]
 

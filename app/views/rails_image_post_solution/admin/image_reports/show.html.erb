@@ -140,8 +140,8 @@
     <!-- Actions -->
     <div class="detail-actions">
       <% if @report.status == RailsImagePostSolution::ImageReport::STATUSES[:pending] %>
-        <%= button_to t('rails_image_post_solution.admin.show.confirm_button'), rails_image_post_solution.confirm_admin_image_report_path(@report), method: :patch, class: "btn btn-danger", data: { turbo_confirm: t('rails_image_post_solution.admin.show.confirm_action') } %>
-        <%= button_to t('rails_image_post_solution.admin.show.dismiss_button'), rails_image_post_solution.dismiss_admin_image_report_path(@report), method: :patch, class: "btn btn-success", data: { turbo_confirm: t('rails_image_post_solution.admin.show.dismiss_action') } %>
+        <%= button_to t('rails_image_post_solution.admin.show.confirm_button'), rails_image_post_solution.confirm_admin_image_report_path(id: @report.id), method: :patch, class: "btn btn-danger", data: { turbo_confirm: t('rails_image_post_solution.admin.show.confirm_action') } %>
+        <%= button_to t('rails_image_post_solution.admin.show.dismiss_button'), rails_image_post_solution.dismiss_admin_image_report_path(id: @report.id), method: :patch, class: "btn btn-success", data: { turbo_confirm: t('rails_image_post_solution.admin.show.dismiss_action') } %>
       <% else %>
         <p class="text-muted"><%= t('rails_image_post_solution.admin.show.already_reviewed') %></p>
       <% end %>

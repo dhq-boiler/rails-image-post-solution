@@ -158,7 +158,7 @@
 
     <% if @user.active? %>
       <div class="action-group">
-        <%= form_with url: suspend_admin_user_path(@user), method: :patch, class: "inline-form" do |f| %>
+        <%= form_with url: suspend_admin_user_path(id: @user.id), method: :patch, class: "inline-form" do |f| %>
           <div class="form-group-inline">
             <%= f.label :duration, "#{t('admin.users.show.suspend_duration')}:" %>
             <%= f.number_field :duration, value: 7, min: 1, max: 365, class: "form-control-small" %>
@@ -172,7 +172,7 @@
       </div>
 
       <div class="action-group">
-        <%= form_with url: ban_admin_user_path(@user), method: :patch, class: "inline-form" do |f| %>
+        <%= form_with url: ban_admin_user_path(id: @user.id), method: :patch, class: "inline-form" do |f| %>
           <div class="form-group-inline">
             <%= f.label :reason, "#{t('admin.users.show.ban_reason')}:" %>
             <%= f.text_area :reason, rows: 2, class: "form-control", placeholder: t('admin.users.show.ban_reason_placeholder') %>
@@ -182,11 +182,11 @@
       </div>
     <% elsif @user.suspended? %>
       <div class="action-group">
-        <%= button_to t('admin.users.show.unsuspend_button'), unsuspend_admin_user_path(@user), method: :patch, class: "btn btn-success", data: { turbo_confirm: t('admin.users.show.unsuspend_confirm') } %>
+        <%= button_to t('admin.users.show.unsuspend_button'), unsuspend_admin_user_path(id: @user.id), method: :patch, class: "btn btn-success", data: { turbo_confirm: t('admin.users.show.unsuspend_confirm') } %>
       </div>
     <% elsif @user.banned? %>
       <div class="action-group">
-        <%= button_to t('admin.users.show.unban_button'), unban_admin_user_path(@user), method: :patch, class: "btn btn-success", data: { turbo_confirm: t('admin.users.show.unban_confirm') } %>
+        <%= button_to t('admin.users.show.unban_button'), unban_admin_user_path(id: @user.id), method: :patch, class: "btn btn-success", data: { turbo_confirm: t('admin.users.show.unban_confirm') } %>
       </div>
     <% end %>
   </div>

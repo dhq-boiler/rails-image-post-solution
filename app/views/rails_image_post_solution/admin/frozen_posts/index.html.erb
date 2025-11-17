@@ -61,7 +61,7 @@
                 <% end %>
               </td>
               <td>
-                <%= link_to post.user.display_name, admin_user_path(post.user), class: "user-link" %>
+                <%= link_to post.user.display_name, admin_user_path(id: post.user.id), class: "user-link" %>
               </td>
               <td class="reason-cell">
                 <%= truncate(post.frozen_reason, length: 100) %>
@@ -80,31 +80,31 @@
                 <div class="action-buttons">
                   <% if post.is_a?(Stage) %>
                     <% unless post.permanently_frozen? %>
-                      <%= button_to t('admin.frozen_posts.index.actions.permanent_freeze'), admin_frozen_posts_permanent_freeze_stage_path(post),
+                      <%= button_to t('admin.frozen_posts.index.actions.permanent_freeze'), admin_frozen_posts_permanent_freeze_stage_path(id: post.id),
                           method: :patch,
                           class: "btn-action btn-warning",
                           data: { confirm: t('admin.frozen_posts.index.confirm.permanent_freeze') } %>
                     <% end %>
-                    <%= button_to t('admin.frozen_posts.index.actions.unfreeze'), admin_frozen_posts_unfreeze_stage_path(post),
+                    <%= button_to t('admin.frozen_posts.index.actions.unfreeze'), admin_frozen_posts_unfreeze_stage_path(id: post.id),
                         method: :patch,
                         class: "btn-action btn-success",
                         data: { confirm: t('admin.frozen_posts.index.confirm.unfreeze') } %>
-                    <%= button_to t('admin.frozen_posts.index.actions.delete'), admin_frozen_posts_destroy_stage_path(post),
+                    <%= button_to t('admin.frozen_posts.index.actions.delete'), admin_frozen_posts_destroy_stage_path(id: post.id),
                         method: :delete,
                         class: "btn-action btn-danger",
                         data: { confirm: t('admin.frozen_posts.index.confirm.delete') } %>
                   <% else %>
                     <% unless post.permanently_frozen? %>
-                      <%= button_to t('admin.frozen_posts.index.actions.permanent_freeze'), admin_frozen_posts_permanent_freeze_comment_path(post),
+                      <%= button_to t('admin.frozen_posts.index.actions.permanent_freeze'), admin_frozen_posts_permanent_freeze_comment_path(id: post.id),
                           method: :patch,
                           class: "btn-action btn-warning",
                           data: { confirm: t('admin.frozen_posts.index.confirm.permanent_freeze') } %>
                     <% end %>
-                    <%= button_to t('admin.frozen_posts.index.actions.unfreeze'), admin_frozen_posts_unfreeze_comment_path(post),
+                    <%= button_to t('admin.frozen_posts.index.actions.unfreeze'), admin_frozen_posts_unfreeze_comment_path(id: post.id),
                         method: :patch,
                         class: "btn-action btn-success",
                         data: { confirm: t('admin.frozen_posts.index.confirm.unfreeze') } %>
-                    <%= button_to t('admin.frozen_posts.index.actions.delete'), admin_frozen_posts_destroy_comment_path(post),
+                    <%= button_to t('admin.frozen_posts.index.actions.delete'), admin_frozen_posts_destroy_comment_path(id: post.id),
                         method: :delete,
                         class: "btn-action btn-danger",
                         data: { confirm: t('admin.frozen_posts.index.confirm.delete') } %>

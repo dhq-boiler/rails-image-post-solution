@@ -73,7 +73,7 @@
               <td><%= l(user.created_at, format: :short) %></td>
               <td><%= user.stages.count %></td>
               <td class="actions-cell">
-                <%= link_to t('admin.users.index.detail'), admin_user_path(user), class: "btn-action btn-detail" %>
+                <%= link_to t('admin.users.index.detail'), admin_user_path(id: user.id), class: "btn-action btn-detail" %>
               </td>
             </tr>
           <% end %>
