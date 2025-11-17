@@ -71,17 +71,5 @@ module RailsImagePostSolution
         end
       end
     end
-
-    def require_login
-      # Call authentication method implemented in host application
-      return if respond_to?(:current_user) && current_user
-
-      respond_to do |format|
-        format.json do
-          render json: { error: I18n.t("rails_image_post_solution.flash.login_required") }, status: :unauthorized
-        end
-        format.html { redirect_to main_app.root_path, alert: I18n.t("rails_image_post_solution.flash.login_required") }
-      end
-    end
   end
 end
