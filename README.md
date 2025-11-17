@@ -62,11 +62,38 @@ Mount the engine in your `config/routes.rb`:
 
 ```ruby
 Rails.application.routes.draw do
-  # Mount at /moderation - admin routes will be at /moderation/admin/image_reports
+  # Mount the engine (admin routes will be at /moderation/admin/image_reports)
   mount RailsImagePostSolution::Engine => "/moderation"
 
-  # Or mount at root - admin routes will be at /admin/image_reports
-  # mount RailsImagePostSolution::Engine => "/"
+  # Optional: Add direct admin routes (accessible at /admin/*)
+  namespace :admin do
+    resources :image_reports, only: %i[index show], controller: 'admin/image_reports' do
+      member do
+        patch :confirm
+        patch :dismiss
+      end
+    end
+
+    resources :users, only: %i[index show], controller: 'admin/users' do
+      member do
+        post :suspend
+        post :unsuspend
+        post :ban
+        post :unban
+      end
+    end
+
+    resources :frozen_posts, only: [:index], controller: 'admin/frozen_posts' do
+      collection do
+        post "unfreeze_stage/:id", to: "admin/frozen_posts#unfreeze_stage", as: :unfreeze_stage
+        post "unfreeze_comment/:id", to: "admin/frozen_posts#unfreeze_comment", as: :unfreeze_comment
+        post "permanent_freeze_stage/:id", to: "admin/frozen_posts#permanent_freeze_stage", as: :permanent_freeze_stage
+        post "permanent_freeze_comment/:id", to: "admin/frozen_posts#permanent_freeze_comment", as: :permanent_freeze_comment
+        delete "destroy_stage/:id", to: "admin/frozen_posts#destroy_stage", as: :destroy_stage
+        delete "destroy_comment/:id", to: "admin/frozen_posts#destroy_comment", as: :destroy_comment
+      end
+    end
+  end
 
   # ... your other routes
 end
@@ -299,7 +326,9 @@ end
 
 ## Routes
 
-The engine provides the following routes (assuming mounted at `/moderation`):
+### Engine Routes (via /moderation mount point)
+
+When you mount the engine at `/moderation`, these routes are available:
 
 ```
 POST   /moderation/image_reports                        # Create report
@@ -316,7 +345,17 @@ POST   /moderation/admin/users/:id/unban                # Unban user
 GET    /moderation/admin/frozen_posts                   # List frozen posts
 ```
 
-If you mount the engine at root (`/`), remove the `/moderation` prefix from all paths.
+### Optional: Direct Admin Routes (via host application routes)
+
+If you want admin routes accessible at `/admin/*` instead of `/moderation/admin/*`, add the routes shown in the Installation section to your host application's `config/routes.rb`. This allows you to access:
+
+```
+GET    /admin/image_reports                             # List all reports
+GET    /admin/image_reports/:id                         # View report details
+GET    /admin/users                                     # List all users
+GET    /admin/users/:id                                 # View user details
+GET    /admin/frozen_posts                              # List frozen posts
+```
 
 ## Customization
 
