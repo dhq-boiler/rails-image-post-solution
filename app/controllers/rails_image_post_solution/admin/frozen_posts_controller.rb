@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-module Admin
-  class FrozenPostsController < ApplicationController
+module RailsImagePostSolution
+  module Admin
+    class FrozenPostsController < ApplicationController
     before_action :require_login
     before_action :require_admin
 
@@ -74,6 +75,7 @@ module Admin
       return if current_user.admin?
 
       redirect_to root_path, alert: I18n.t("admin.flash.access_denied")
+    end
     end
   end
 end

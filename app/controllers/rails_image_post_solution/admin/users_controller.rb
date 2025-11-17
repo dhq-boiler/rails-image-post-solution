@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-module Admin
-  class UsersController < ApplicationController
+module RailsImagePostSolution
+  module Admin
+    class UsersController < ApplicationController
     before_action :require_login
     before_action :require_admin
     before_action :set_user, only: %i[show suspend unsuspend ban unban]
@@ -95,6 +96,7 @@ module Admin
       return if current_user.admin?
 
       redirect_to root_path, alert: I18n.t("admin.flash.admin_access_only")
+    end
     end
   end
 end

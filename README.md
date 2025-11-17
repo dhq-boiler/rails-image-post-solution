@@ -62,31 +62,8 @@ Mount the engine in your `config/routes.rb`:
 
 ```ruby
 Rails.application.routes.draw do
-  # Mount the engine
+  # Mount the engine - all admin features will be accessible at /moderation/admin/*
   mount RailsImagePostSolution::Engine => "/moderation"
-
-  # Optional: Add admin routes for extended features (user management, frozen posts)
-  namespace :admin do
-    resources :users, only: %i[index show] do
-      member do
-        post :suspend
-        post :unsuspend
-        post :ban
-        post :unban
-      end
-    end
-
-    resources :frozen_posts, only: [:index] do
-      collection do
-        post "unfreeze_stage/:id", to: "frozen_posts#unfreeze_stage", as: :unfreeze_stage
-        post "unfreeze_comment/:id", to: "frozen_posts#unfreeze_comment", as: :unfreeze_comment
-        post "permanent_freeze_stage/:id", to: "frozen_posts#permanent_freeze_stage", as: :permanent_freeze_stage
-        post "permanent_freeze_comment/:id", to: "frozen_posts#permanent_freeze_comment", as: :permanent_freeze_comment
-        delete "destroy_stage/:id", to: "frozen_posts#destroy_stage", as: :destroy_stage
-        delete "destroy_comment/:id", to: "frozen_posts#destroy_comment", as: :destroy_comment
-      end
-    end
-  end
 
   # ... your other routes
 end
@@ -319,64 +296,34 @@ end
 
 ## Routes
 
-### Engine Routes (via /moderation mount point)
+The engine provides the following routes when mounted at `/moderation`:
 
-The engine provides these routes when mounted at `/moderation`:
+### User-Facing Routes
 
 ```
 POST   /moderation/image_reports                        # Create report
+```
+
+### Admin Routes
+
+```
 GET    /moderation/admin/image_reports                  # List all reports
 GET    /moderation/admin/image_reports/:id              # View report details
 PATCH  /moderation/admin/image_reports/:id/confirm      # Mark as inappropriate
 PATCH  /moderation/admin/image_reports/:id/dismiss      # Mark as safe
-```
-
-### Host Application Routes (Required for Extended Features)
-
-The gem provides additional admin controllers in `app/controllers/admin/` that you can use in your host application. **You must add these routes to your host application's `config/routes.rb`** to use them:
-
-```ruby
-namespace :admin do
-  # User management
-  resources :users, only: %i[index show] do
-    member do
-      post :suspend
-      post :unsuspend
-      post :ban
-      post :unban
-    end
-  end
-
-  # Frozen posts management
-  resources :frozen_posts, only: [:index] do
-    collection do
-      post "unfreeze_stage/:id", to: "frozen_posts#unfreeze_stage", as: :admin_unfreeze_stage
-      post "unfreeze_comment/:id", to: "frozen_posts#unfreeze_comment", as: :admin_unfreeze_comment
-      post "permanent_freeze_stage/:id", to: "frozen_posts#permanent_freeze_stage", as: :admin_permanent_freeze_stage
-      post "permanent_freeze_comment/:id", to: "frozen_posts#permanent_freeze_comment", as: :admin_permanent_freeze_comment
-      delete "destroy_stage/:id", to: "frozen_posts#destroy_stage", as: :admin_destroy_stage
-      delete "destroy_comment/:id", to: "frozen_posts#destroy_comment", as: :admin_destroy_comment
-    end
-  end
-end
-```
-
-This provides these routes:
-
-```
-GET    /admin/users                                     # List all users
-GET    /admin/users/:id                                 # View user details
-POST   /admin/users/:id/suspend                         # Suspend user
-POST   /admin/users/:id/unsuspend                       # Unsuspend user
-POST   /admin/users/:id/ban                             # Ban user
-POST   /admin/users/:id/unban                           # Unban user
-GET    /admin/frozen_posts                              # List frozen posts
-POST   /admin/frozen_posts/unfreeze_stage/:id           # Unfreeze a stage
-POST   /admin/frozen_posts/unfreeze_comment/:id         # Unfreeze a comment
-POST   /admin/frozen_posts/permanent_freeze_stage/:id   # Permanently freeze a stage
-POST   /admin/frozen_posts/permanent_freeze_comment/:id # Permanently freeze a comment
-DELETE /admin/frozen_posts/destroy_stage/:id            # Delete a frozen stage
-DELETE /admin/frozen_posts/destroy_comment/:id          # Delete a frozen comment
+GET    /moderation/admin/users                          # List all users
+GET    /moderation/admin/users/:id                      # View user details
+POST   /moderation/admin/users/:id/suspend              # Suspend user
+POST   /moderation/admin/users/:id/unsuspend            # Unsuspend user
+POST   /moderation/admin/users/:id/ban                  # Ban user
+POST   /moderation/admin/users/:id/unban                # Unban user
+GET    /moderation/admin/frozen_posts                   # List frozen posts
+POST   /moderation/admin/frozen_posts/unfreeze_stage/:id           # Unfreeze a stage
+POST   /moderation/admin/frozen_posts/unfreeze_comment/:id         # Unfreeze a comment
+POST   /moderation/admin/frozen_posts/permanent_freeze_stage/:id   # Permanently freeze a stage
+POST   /moderation/admin/frozen_posts/permanent_freeze_comment/:id # Permanently freeze a comment
+DELETE /moderation/admin/frozen_posts/destroy_stage/:id            # Delete a frozen stage
+DELETE /moderation/admin/frozen_posts/destroy_comment/:id          # Delete a frozen comment
 ```
 
 ## Customization
