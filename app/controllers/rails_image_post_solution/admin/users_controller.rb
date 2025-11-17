@@ -91,12 +91,6 @@ module RailsImagePostSolution
     rescue ActiveRecord::RecordNotFound
       redirect_to admin_users_path, alert: I18n.t("admin.flash.user_not_found")
     end
-
-    def require_admin
-      return if current_user.admin?
-
-      redirect_to root_path, alert: I18n.t("admin.flash.admin_access_only")
-    end
     end
   end
 end

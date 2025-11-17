@@ -72,21 +72,6 @@ module RailsImagePostSolution
       rescue ActiveRecord::RecordNotFound
         redirect_to admin_image_reports_path, alert: I18n.t("rails_image_post_solution.flash.admin.report_not_found")
       end
-
-      def require_admin
-        admin_check = RailsImagePostSolution.configuration&.admin_check_method || :admin?
-
-        return if current_user.respond_to?(admin_check) && current_user.public_send(admin_check)
-
-        redirect_to main_app.root_path, alert: I18n.t("rails_image_post_solution.flash.admin.admin_access_only")
-      end
-
-      def require_login
-        # Call authentication method implemented in host application
-        return if respond_to?(:current_user) && current_user
-
-        redirect_to main_app.root_path, alert: I18n.t("rails_image_post_solution.flash.admin.login_required")
-      end
     end
   end
 end

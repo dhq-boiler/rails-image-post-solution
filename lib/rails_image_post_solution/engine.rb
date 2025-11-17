@@ -7,7 +7,7 @@ module RailsImagePostSolution
     isolate_namespace RailsImagePostSolution
 
     # Explicitly set engine root
-    config.root = File.expand_path('../..', __dir__)
+    config.root = File.expand_path("../..", __dir__)
 
     # Eager load engine classes to ensure they're available
     config.eager_load_paths += %W[
@@ -18,16 +18,16 @@ module RailsImagePostSolution
     config.to_prepare do
       # Ensure Admin module is loaded
       unless defined?(RailsImagePostSolution::Admin)
-        require Engine.root.join('app/controllers/rails_image_post_solution/admin.rb')
+        require Engine.root.join("app/controllers/rails_image_post_solution/admin.rb")
       end
 
       # Ensure ApplicationController is loaded
       unless defined?(RailsImagePostSolution::ApplicationController)
-        require Engine.root.join('app/controllers/rails_image_post_solution/application_controller.rb')
+        require Engine.root.join("app/controllers/rails_image_post_solution/application_controller.rb")
       end
 
       # Eager load all admin controllers
-      Dir[Engine.root.join('app/controllers/rails_image_post_solution/admin/**/*_controller.rb')].each do |file|
+      Dir[Engine.root.join("app/controllers/rails_image_post_solution/admin/**/*_controller.rb")].each do |file|
         require file
       end
     end
