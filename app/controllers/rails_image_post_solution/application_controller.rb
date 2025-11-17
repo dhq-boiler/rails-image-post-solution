@@ -31,6 +31,15 @@ module RailsImagePostSolution
       end
     end
 
+    # Ensure default_url_options includes locale
+    def default_url_options
+      if defined?(super)
+        super.merge(locale: I18n.locale)
+      else
+        { locale: I18n.locale }
+      end
+    end
+
     private
 
     def add_engine_view_path
