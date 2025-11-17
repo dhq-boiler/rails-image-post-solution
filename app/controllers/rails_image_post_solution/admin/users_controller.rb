@@ -2,7 +2,7 @@
 
 module RailsImagePostSolution
   module Admin
-    class UsersController < ApplicationController
+    class UsersController < RailsImagePostSolution::ApplicationController
     before_action :require_login
     before_action :require_admin
     before_action :set_user, only: %i[show suspend unsuspend ban unban]

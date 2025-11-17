@@ -2,7 +2,7 @@
 
 module RailsImagePostSolution
   module Admin
-    class ImageReportsController < ApplicationController
+    class ImageReportsController < RailsImagePostSolution::ApplicationController
       before_action :require_login
       before_action :require_admin
       before_action :set_report, only: %i[show confirm dismiss]

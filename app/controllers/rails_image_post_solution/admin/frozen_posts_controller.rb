@@ -2,7 +2,7 @@
 
 module RailsImagePostSolution
   module Admin
-    class FrozenPostsController < ApplicationController
+    class FrozenPostsController < RailsImagePostSolution::ApplicationController
     before_action :require_login
     before_action :require_admin
 

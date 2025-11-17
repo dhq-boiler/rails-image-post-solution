@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module RailsImagePostSolution
-  class ImageReportsController < ApplicationController
+  class ImageReportsController < RailsImagePostSolution::ApplicationController
     before_action :require_login
     before_action :set_attachment, only: :create
 
