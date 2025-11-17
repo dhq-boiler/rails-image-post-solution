@@ -20,6 +20,11 @@ A comprehensive Rails engine for image reporting, AI-powered moderation using Op
 - **Frozen Posts Management**: Review, unfreeze, or permanently freeze flagged content
 - **Enhanced Reporting**: Extended admin views with detailed statistics
 
+### Internationalization
+- **Full i18n Support**: Seamlessly integrates with locale-scoped routes
+- **15+ Languages**: Supports ja, en, ko, zh-CN, zh-TW, es, fr, de, ru, th, vi, id, pt, tr, it
+- **Automatic Locale Handling**: Works with your application's locale configuration
+
 ## Requirements
 
 - Ruby >= 3.4.7
@@ -60,6 +65,22 @@ rails db:migrate
 
 Mount the engine in your `config/routes.rb`:
 
+**For applications WITH locale-scoped routes:**
+
+```ruby
+Rails.application.routes.draw do
+  # Wrap all routes including the engine mount in a locale scope
+  scope "(:locale)", locale: /[a-z]{2}(-[A-Z]{2})?/ do
+    # Mount the engine - all admin features will be accessible at /:locale/moderation/admin/*
+    mount RailsImagePostSolution::Engine => "/moderation"
+
+    # ... your other routes
+  end
+end
+```
+
+**For applications WITHOUT locale-scoped routes:**
+
 ```ruby
 Rails.application.routes.draw do
   # Mount the engine - all admin features will be accessible at /moderation/admin/*
@@ -68,6 +89,8 @@ Rails.application.routes.draw do
   # ... your other routes
 end
 ```
+
+**Important**: The engine itself does NOT add locale scoping to its internal routes. Locale handling should be done at the mount level in the host application's routes file.
 
 ## Configuration
 
@@ -140,7 +163,14 @@ The provided partials include:
 Admins can access the dashboard at:
 
 ```
+# Without locale
 /moderation/admin/image_reports
+
+# With locale (if using locale-scoped routes)
+/ja/moderation/admin/image_reports
+/en/moderation/admin/image_reports
+/de/moderation/admin/image_reports
+# ... etc
 ```
 
 Features:
@@ -149,6 +179,7 @@ Features:
 - View detailed information about each report
 - Mark reports as confirmed (inappropriate) or dismissed (safe)
 - View AI moderation results
+- Multi-language support (automatically uses your application's current locale)
 
 ### AI Moderation
 
@@ -300,45 +331,128 @@ The engine provides the following routes when mounted at `/moderation`:
 
 ### Using Route Helpers
 
-The engine automatically makes route helpers available in your application. You can use them directly:
+The engine automatically makes route helpers available in your application:
 
+**In host application views/controllers** (accessing host app routes):
 ```ruby
-# In your views or controllers
-admin_image_reports_path          # => /moderation/admin/image_reports
-admin_user_path(@user)             # => /moderation/admin/users/:id
-image_reports_path                 # => /moderation/image_reports
+# Use main_app prefix to access host application routes
+main_app.root_path(locale: I18n.locale)           # => /ja/
+main_app.stages_path(locale: I18n.locale)         # => /ja/stages
+main_app.user_path(@user, locale: I18n.locale)   # => /ja/users/:id
+```
 
-# Or use the engine namespace explicitly
-rails_image_post_solution.admin_image_reports_path
+**Accessing engine routes from host application:**
+```ruby
+# Use engine namespace
+rails_image_post_solution.admin_image_reports_path    # => /moderation/admin/image_reports (or /ja/moderation/admin/image_reports)
+rails_image_post_solution.admin_user_path(@user)      # => /moderation/admin/users/:id
+rails_image_post_solution.image_reports_path          # => /moderation/image_reports
+
+# In locale-scoped applications, locale is automatically included via mount point
+```
+
+**In engine views/controllers:**
+```ruby
+# Engine routes (no prefix needed within engine)
+admin_image_reports_path                    # => /admin/image_reports
+admin_user_path(id: @user.id)              # => /admin/users/:id
+
+# Host app routes (use main_app prefix)
+main_app.root_path(locale: I18n.locale)    # => /ja/
 ```
 
 ### User-Facing Routes
 
 ```
-POST   /moderation/image_reports                        # Create report
+POST   (/:locale)/moderation/image_reports                        # Create report
 ```
 
 ### Admin Routes
 
+**Image Reports:**
 ```
-GET    /moderation/admin/image_reports                  # List all reports
-GET    /moderation/admin/image_reports/:id              # View report details
-PATCH  /moderation/admin/image_reports/:id/confirm      # Mark as inappropriate
-PATCH  /moderation/admin/image_reports/:id/dismiss      # Mark as safe
-GET    /moderation/admin/users                          # List all users
-GET    /moderation/admin/users/:id                      # View user details
-POST   /moderation/admin/users/:id/suspend              # Suspend user
-POST   /moderation/admin/users/:id/unsuspend            # Unsuspend user
-POST   /moderation/admin/users/:id/ban                  # Ban user
-POST   /moderation/admin/users/:id/unban                # Unban user
-GET    /moderation/admin/frozen_posts                   # List frozen posts
-POST   /moderation/admin/frozen_posts/unfreeze_stage/:id           # Unfreeze a stage
-POST   /moderation/admin/frozen_posts/unfreeze_comment/:id         # Unfreeze a comment
-POST   /moderation/admin/frozen_posts/permanent_freeze_stage/:id   # Permanently freeze a stage
-POST   /moderation/admin/frozen_posts/permanent_freeze_comment/:id # Permanently freeze a comment
-DELETE /moderation/admin/frozen_posts/destroy_stage/:id            # Delete a frozen stage
-DELETE /moderation/admin/frozen_posts/destroy_comment/:id          # Delete a frozen comment
+GET    (/:locale)/moderation/admin/image_reports                  # List all reports
+GET    (/:locale)/moderation/admin/image_reports/:id              # View report details
+PATCH  (/:locale)/moderation/admin/image_reports/:id/confirm      # Mark as inappropriate
+PATCH  (/:locale)/moderation/admin/image_reports/:id/dismiss      # Mark as safe
 ```
+
+**User Management:**
+```
+GET    (/:locale)/moderation/admin/users                          # List all users
+GET    (/:locale)/moderation/admin/users/:id                      # View user details
+POST   (/:locale)/moderation/admin/users/:id/suspend              # Suspend user
+POST   (/:locale)/moderation/admin/users/:id/unsuspend            # Unsuspend user
+POST   (/:locale)/moderation/admin/users/:id/ban                  # Ban user
+POST   (/:locale)/moderation/admin/users/:id/unban                # Unban user
+```
+
+**Frozen Posts:**
+```
+GET    (/:locale)/moderation/admin/frozen_posts                                  # List frozen posts
+POST   (/:locale)/moderation/admin/frozen_posts/unfreeze_stage/:id              # Unfreeze a stage
+POST   (/:locale)/moderation/admin/frozen_posts/unfreeze_comment/:id            # Unfreeze a comment
+POST   (/:locale)/moderation/admin/frozen_posts/permanent_freeze_stage/:id      # Permanently freeze a stage
+POST   (/:locale)/moderation/admin/frozen_posts/permanent_freeze_comment/:id    # Permanently freeze a comment
+DELETE (/:locale)/moderation/admin/frozen_posts/destroy_stage/:id               # Delete a frozen stage
+DELETE (/:locale)/moderation/admin/frozen_posts/destroy_comment/:id             # Delete a frozen comment
+```
+
+Note: `(/:locale)` means the locale parameter is optional and depends on your application's routing configuration.
+
+## Internationalization (i18n)
+
+### Supported Languages
+
+The engine includes translations for 15 languages:
+- 🇯🇵 Japanese (ja)
+- 🇺🇸 English (en)
+- 🇰🇷 Korean (ko)
+- 🇨🇳 Simplified Chinese (zh-CN)
+- 🇹🇼 Traditional Chinese (zh-TW)
+- 🇪🇸 Spanish (es)
+- 🇫🇷 French (fr)
+- 🇩🇪 German (de)
+- 🇷🇺 Russian (ru)
+- 🇹🇭 Thai (th)
+- 🇻🇳 Vietnamese (vi)
+- 🇮🇩 Indonesian (id)
+- 🇵🇹 Portuguese (pt)
+- 🇹🇷 Turkish (tr)
+- 🇮🇹 Italian (it)
+
+### Locale Configuration
+
+The engine automatically uses your application's `I18n.locale`. To configure available locales in your host application:
+
+```ruby
+# config/application.rb
+config.i18n.available_locales = [:ja, :en, :ko, :zh_CN, :zh_TW, :es, :fr, :de, :ru, :th, :vi, :id, :pt, :tr, :it]
+config.i18n.default_locale = :ja
+```
+
+### Language Switching in Views
+
+When implementing language switching in your application header, use this pattern to preserve the current path with different locales:
+
+```erb
+<% I18n.available_locales.each do |locale| %>
+  <%
+    # Preserve query parameters but replace locale in the path
+    new_path = request.path.sub(%r{^/([a-z]{2}(-[A-Z]{2})?)(/|$)}, "/#{locale}\\3")
+
+    # If path doesn't start with a locale, add one
+    unless request.path.match?(%r{^/[a-z]{2}(-[A-Z]{2})?(/|$)})
+      new_path = "/#{locale}#{request.path}"
+    end
+
+    new_path += "?#{request.query_string}" if request.query_string.present?
+  %>
+  <%= link_to t("languages.#{locale}"), new_path, class: "language-menu-item #{'active' if I18n.locale == locale}" %>
+<% end %>
+```
+
+This ensures that users can switch languages while staying on the same page, whether they're in the host application or the engine's admin pages.
 
 ## Customization
 
@@ -369,6 +483,25 @@ class CustomImageModerationJob < RailsImagePostSolution::ImageModerationJob
   def perform(attachment_id)
     # Your custom logic
     super
+  end
+end
+```
+
+### Custom Locale Management
+
+The engine respects your application's locale configuration. If you need custom locale handling:
+
+```ruby
+# app/controllers/application_controller.rb
+class ApplicationController < ActionController::Base
+  before_action :set_locale
+
+  def set_locale
+    I18n.locale = params[:locale] || I18n.default_locale
+  end
+
+  def default_url_options
+    { locale: I18n.locale }
   end
 end
 ```
