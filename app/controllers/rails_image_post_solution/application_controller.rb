@@ -5,6 +5,9 @@ module RailsImagePostSolution
     # Engine's base controller inherits from host application's ApplicationController
     # This allows the engine to use the host app's authentication methods
 
+    # Prepend engine's view path
+    prepend_view_path Engine.root.join("app", "views")
+
     # Override require_login to use main_app routes
     def require_login
       unless logged_in?

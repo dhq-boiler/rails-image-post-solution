@@ -9,13 +9,17 @@ module RailsImagePostSolution
     # Explicitly set engine root
     config.root = File.expand_path("../..", __dir__)
 
-    # Add engine's view paths
-    config.paths["app/views"] << root.join("app/views")
-
     # Eager load engine classes to ensure they're available
     config.eager_load_paths += %W[
       #{root}/app/controllers
     ]
+
+    # Prepend view paths so engine views are found
+    initializer "rails_image_post_solution.view_paths" do
+      ActiveSupport.on_load(:action_controller) do
+        prepend_view_path Engine.root.join("app", "views")
+      end
+    end
 
     # Load admin module and controllers when app prepares
     config.to_prepare do
