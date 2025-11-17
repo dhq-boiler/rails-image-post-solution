@@ -4,15 +4,15 @@ A comprehensive Rails engine for image reporting, AI-powered moderation using Op
 
 ## Features
 
-- 📸 **Image Reporting System**: Allow users to report inappropriate images
-- 🤖 **AI-Powered Moderation**: Automatic content moderation using OpenAI Vision API
+- **Image Reporting System**: Allow users to report inappropriate images
+- **AI-Powered Moderation**: Automatic content moderation using OpenAI Vision API
   - Detects R18 (adult content)
   - Detects R18G (grotesque/violent content)
   - Detects illegal content
-- 👮 **Admin Dashboard**: Review and manage reported images
-- 🔒 **Auto-Freeze**: Automatically freeze posts containing flagged content (configurable)
-- 🌍 **i18n Support**: Japanese and English locales included
-- ⚙️ **Highly Configurable**: Customize behavior to fit your application
+- **Admin Dashboard**: Review and manage reported images
+- **Auto-Freeze**: Automatically freeze posts containing flagged content (configurable)
+- **i18n Support**: Japanese and English locales included
+- **Highly Configurable**: Customize behavior to fit your application
 
 ## Requirements
 
