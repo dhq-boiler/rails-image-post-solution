@@ -16,6 +16,16 @@ module RailsImagePostSolution
         RailsImagePostSolution::Engine.class_eval do
           load routes_path
         end
+
+        # After routes are loaded, make helpers available
+        ActiveSupport.on_load(:action_controller_base) do
+          include RailsImagePostSolution::Engine.routes.url_helpers
+          helper RailsImagePostSolution::Engine.routes.url_helpers
+        end
+
+        ActiveSupport.on_load(:action_view) do
+          include RailsImagePostSolution::Engine.routes.url_helpers
+        end
       end
     end
 
@@ -30,18 +40,6 @@ module RailsImagePostSolution
 
     initializer "rails_image_post_solution.assets" do |app|
       app.config.assets.paths << root.join("app/assets")
-    end
-
-    # Make engine route helpers available in the main application
-    initializer "rails_image_post_solution.helpers" do
-      ActiveSupport.on_load(:action_controller_base) do
-        include RailsImagePostSolution::Engine.routes.url_helpers
-        helper RailsImagePostSolution::Engine.routes.url_helpers
-      end
-
-      ActiveSupport.on_load(:action_view) do
-        include RailsImagePostSolution::Engine.routes.url_helpers
-      end
     end
   end
 end
