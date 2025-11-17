@@ -65,15 +65,13 @@ module RailsImagePostSolution
         flagged_categories = result[:categories].select { |_, flagged| flagged }
         if flagged_categories.any?
           reasons << "\nDetected categories:"
-          flagged_categories.each do |category, _|
+          flagged_categories.each_key do |category|
             reasons << "  - #{category}"
           end
         end
       end
 
-      if result[:confidence]
-        reasons << "\nConfidence: #{(result[:confidence] * 100).round(1)}%"
-      end
+      reasons << "\nConfidence: #{(result[:confidence] * 100).round(1)}%" if result[:confidence]
 
       reasons.join("\n")
     end

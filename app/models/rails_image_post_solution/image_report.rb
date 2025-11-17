@@ -22,7 +22,7 @@ module RailsImagePostSolution
 
     # Get category list (for use in views)
     def self.categories_for_select
-      REASON_CATEGORIES.map { |key| [key, category_text(key)] }
+      REASON_CATEGORIES.map { |key| [ key, category_text(key) ] }
     end
 
     # Associations
@@ -33,7 +33,7 @@ module RailsImagePostSolution
     # Validations
     validates :status, presence: true, inclusion: { in: STATUSES.values }
     validates :user_id, uniqueness: { scope: :active_storage_attachment_id,
-                                     message: "has already reported this image" }
+                                      message: "has already reported this image" }
 
     # Scopes
     scope :pending, -> { where(status: STATUSES[:pending]) }
@@ -45,7 +45,7 @@ module RailsImagePostSolution
     # Check if image has been reported as inappropriate
     def self.image_reported?(attachment_id)
       where(active_storage_attachment_id: attachment_id)
-        .where(status: [STATUSES[:pending], STATUSES[:confirmed]])
+        .where(status: [ STATUSES[:pending], STATUSES[:confirmed] ])
         .exists?
     end
 

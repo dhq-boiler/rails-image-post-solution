@@ -2,11 +2,11 @@
 
 RailsImagePostSolution::Engine.routes.draw do
   # User-facing report API
-  resources :image_reports, only: [:create]
+  resources :image_reports, only: [ :create ]
 
   # Admin dashboard
   namespace :admin do
-    resources :image_reports, only: [:index, :show] do
+    resources :image_reports, only: %i[index show] do
       member do
         patch :confirm
         patch :dismiss

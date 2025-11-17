@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 module Admin
   class ImageReportsController < ApplicationController
     before_action :require_login
     before_action :require_admin
-    before_action :set_report, only: [ :show, :confirm, :dismiss ]
+    before_action :set_report, only: %i[show confirm dismiss]
 
     def index
       @status_filter = params[:status] || "all"
 
       @reports = ImageReport.includes(:user, :active_storage_attachment, :reviewed_by)
-                           .recent
+                            .recent
 
       # Filter by status
       case @status_filter
@@ -49,7 +51,7 @@ module Admin
         reviewed_at: Time.current
       )
 
-      redirect_to admin_image_reports_path, notice: I18n.t('admin.image_reports.flash.report_confirmed')
+      redirect_to admin_image_reports_path, notice: I18n.t("admin.image_reports.flash.report_confirmed")
     end
 
     def dismiss
@@ -59,7 +61,7 @@ module Admin
         reviewed_at: Time.current
       )
 
-      redirect_to admin_image_reports_path, notice: I18n.t('admin.image_reports.flash.report_dismissed')
+      redirect_to admin_image_reports_path, notice: I18n.t("admin.image_reports.flash.report_dismissed")
     end
 
     private
@@ -67,13 +69,13 @@ module Admin
     def set_report
       @report = ImageReport.find(params[:id])
     rescue ActiveRecord::RecordNotFound
-      redirect_to admin_image_reports_path, alert: I18n.t('admin.image_reports.flash.report_not_found')
+      redirect_to admin_image_reports_path, alert: I18n.t("admin.image_reports.flash.report_not_found")
     end
 
     def require_admin
-      unless current_user.admin?
-        redirect_to root_path, alert: I18n.t('admin.flash.admin_access_only')
-      end
+      return if current_user.admin?
+
+      redirect_to root_path, alert: I18n.t("admin.flash.admin_access_only")
     end
   end
 end

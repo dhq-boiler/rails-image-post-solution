@@ -5,13 +5,13 @@ module RailsImagePostSolution
     class ImageReportsController < ApplicationController
       before_action :require_login
       before_action :require_admin
-      before_action :set_report, only: [:show, :confirm, :dismiss]
+      before_action :set_report, only: %i[show confirm dismiss]
 
       def index
         @status_filter = params[:status] || "all"
 
         @reports = ImageReport.includes(:user, :active_storage_attachment, :reviewed_by)
-                             .recent
+                              .recent
 
         # Filter by status
         case @status_filter
@@ -76,9 +76,9 @@ module RailsImagePostSolution
       def require_admin
         admin_check = RailsImagePostSolution.configuration&.admin_check_method || :admin?
 
-        unless current_user.respond_to?(admin_check) && current_user.public_send(admin_check)
-          redirect_to main_app.root_path, alert: I18n.t("rails_image_post_solution.flash.admin.admin_access_only")
-        end
+        return if current_user.respond_to?(admin_check) && current_user.public_send(admin_check)
+
+        redirect_to main_app.root_path, alert: I18n.t("rails_image_post_solution.flash.admin.admin_access_only")
       end
 
       def require_login
