@@ -17,14 +17,14 @@ module RailsImagePostSolution
           load routes_path
         end
 
-        # After routes are loaded, make helpers available
-        ActiveSupport.on_load(:action_controller_base) do
-          include RailsImagePostSolution::Engine.routes.url_helpers
-          helper RailsImagePostSolution::Engine.routes.url_helpers
-        end
+        # After routes are loaded, make helpers available directly
+        Rails.application.config.to_prepare do
+          # Include in all controllers
+          ActionController::Base.include RailsImagePostSolution::Engine.routes.url_helpers
+          ActionController::Base.helper RailsImagePostSolution::Engine.routes.url_helpers
 
-        ActiveSupport.on_load(:action_view) do
-          include RailsImagePostSolution::Engine.routes.url_helpers
+          # Include in all views
+          ActionView::Base.include RailsImagePostSolution::Engine.routes.url_helpers
         end
       end
     end
