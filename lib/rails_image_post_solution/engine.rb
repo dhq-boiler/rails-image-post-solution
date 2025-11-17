@@ -9,15 +9,27 @@ module RailsImagePostSolution
     # Explicitly set engine root
     config.root = File.expand_path('../..', __dir__)
 
-    # Configure autoload paths for proper module loading
-    config.autoload_paths += %W[
+    # Eager load engine classes to ensure they're available
+    config.eager_load_paths += %W[
       #{root}/app/controllers
     ]
 
-    # Eager load admin module and controllers
+    # Load admin module and controllers when app prepares
     config.to_prepare do
-      # Manually require the Admin module to ensure it's loaded first
-      require Engine.root.join('app/controllers/rails_image_post_solution/admin.rb') unless defined?(RailsImagePostSolution::Admin)
+      # Ensure Admin module is loaded
+      unless defined?(RailsImagePostSolution::Admin)
+        require Engine.root.join('app/controllers/rails_image_post_solution/admin.rb')
+      end
+
+      # Ensure ApplicationController is loaded
+      unless defined?(RailsImagePostSolution::ApplicationController)
+        require Engine.root.join('app/controllers/rails_image_post_solution/application_controller.rb')
+      end
+
+      # Eager load all admin controllers
+      Dir[Engine.root.join('app/controllers/rails_image_post_solution/admin/**/*_controller.rb')].each do |file|
+        require file
+      end
     end
 
     # Load routes when engine is initialized
