@@ -62,19 +62,12 @@ Mount the engine in your `config/routes.rb`:
 
 ```ruby
 Rails.application.routes.draw do
-  # Mount the engine (admin routes will be at /moderation/admin/image_reports)
+  # Mount the engine
   mount RailsImagePostSolution::Engine => "/moderation"
 
-  # Optional: Add direct admin routes (accessible at /admin/*)
+  # Optional: Add admin routes for extended features (user management, frozen posts)
   namespace :admin do
-    resources :image_reports, only: %i[index show], controller: 'admin/image_reports' do
-      member do
-        patch :confirm
-        patch :dismiss
-      end
-    end
-
-    resources :users, only: %i[index show], controller: 'admin/users' do
+    resources :users, only: %i[index show] do
       member do
         post :suspend
         post :unsuspend
@@ -83,14 +76,14 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :frozen_posts, only: [:index], controller: 'admin/frozen_posts' do
+    resources :frozen_posts, only: [:index] do
       collection do
-        post "unfreeze_stage/:id", to: "admin/frozen_posts#unfreeze_stage", as: :unfreeze_stage
-        post "unfreeze_comment/:id", to: "admin/frozen_posts#unfreeze_comment", as: :unfreeze_comment
-        post "permanent_freeze_stage/:id", to: "admin/frozen_posts#permanent_freeze_stage", as: :permanent_freeze_stage
-        post "permanent_freeze_comment/:id", to: "admin/frozen_posts#permanent_freeze_comment", as: :permanent_freeze_comment
-        delete "destroy_stage/:id", to: "admin/frozen_posts#destroy_stage", as: :destroy_stage
-        delete "destroy_comment/:id", to: "admin/frozen_posts#destroy_comment", as: :destroy_comment
+        post "unfreeze_stage/:id", to: "frozen_posts#unfreeze_stage", as: :unfreeze_stage
+        post "unfreeze_comment/:id", to: "frozen_posts#unfreeze_comment", as: :unfreeze_comment
+        post "permanent_freeze_stage/:id", to: "frozen_posts#permanent_freeze_stage", as: :permanent_freeze_stage
+        post "permanent_freeze_comment/:id", to: "frozen_posts#permanent_freeze_comment", as: :permanent_freeze_comment
+        delete "destroy_stage/:id", to: "frozen_posts#destroy_stage", as: :destroy_stage
+        delete "destroy_comment/:id", to: "frozen_posts#destroy_comment", as: :destroy_comment
       end
     end
   end
@@ -328,7 +321,7 @@ end
 
 ### Engine Routes (via /moderation mount point)
 
-When you mount the engine at `/moderation`, these routes are available:
+The engine provides these routes when mounted at `/moderation`:
 
 ```
 POST   /moderation/image_reports                        # Create report
@@ -336,25 +329,54 @@ GET    /moderation/admin/image_reports                  # List all reports
 GET    /moderation/admin/image_reports/:id              # View report details
 PATCH  /moderation/admin/image_reports/:id/confirm      # Mark as inappropriate
 PATCH  /moderation/admin/image_reports/:id/dismiss      # Mark as safe
-GET    /moderation/admin/users                          # List all users
-GET    /moderation/admin/users/:id                      # View user details
-POST   /moderation/admin/users/:id/suspend              # Suspend user
-POST   /moderation/admin/users/:id/unsuspend            # Unsuspend user
-POST   /moderation/admin/users/:id/ban                  # Ban user
-POST   /moderation/admin/users/:id/unban                # Unban user
-GET    /moderation/admin/frozen_posts                   # List frozen posts
 ```
 
-### Optional: Direct Admin Routes (via host application routes)
+### Host Application Routes (Required for Extended Features)
 
-If you want admin routes accessible at `/admin/*` instead of `/moderation/admin/*`, add the routes shown in the Installation section to your host application's `config/routes.rb`. This allows you to access:
+The gem provides additional admin controllers in `app/controllers/admin/` that you can use in your host application. **You must add these routes to your host application's `config/routes.rb`** to use them:
+
+```ruby
+namespace :admin do
+  # User management
+  resources :users, only: %i[index show] do
+    member do
+      post :suspend
+      post :unsuspend
+      post :ban
+      post :unban
+    end
+  end
+
+  # Frozen posts management
+  resources :frozen_posts, only: [:index] do
+    collection do
+      post "unfreeze_stage/:id", to: "frozen_posts#unfreeze_stage", as: :admin_unfreeze_stage
+      post "unfreeze_comment/:id", to: "frozen_posts#unfreeze_comment", as: :admin_unfreeze_comment
+      post "permanent_freeze_stage/:id", to: "frozen_posts#permanent_freeze_stage", as: :admin_permanent_freeze_stage
+      post "permanent_freeze_comment/:id", to: "frozen_posts#permanent_freeze_comment", as: :admin_permanent_freeze_comment
+      delete "destroy_stage/:id", to: "frozen_posts#destroy_stage", as: :admin_destroy_stage
+      delete "destroy_comment/:id", to: "frozen_posts#destroy_comment", as: :admin_destroy_comment
+    end
+  end
+end
+```
+
+This provides these routes:
 
 ```
-GET    /admin/image_reports                             # List all reports
-GET    /admin/image_reports/:id                         # View report details
 GET    /admin/users                                     # List all users
 GET    /admin/users/:id                                 # View user details
+POST   /admin/users/:id/suspend                         # Suspend user
+POST   /admin/users/:id/unsuspend                       # Unsuspend user
+POST   /admin/users/:id/ban                             # Ban user
+POST   /admin/users/:id/unban                           # Unban user
 GET    /admin/frozen_posts                              # List frozen posts
+POST   /admin/frozen_posts/unfreeze_stage/:id           # Unfreeze a stage
+POST   /admin/frozen_posts/unfreeze_comment/:id         # Unfreeze a comment
+POST   /admin/frozen_posts/permanent_freeze_stage/:id   # Permanently freeze a stage
+POST   /admin/frozen_posts/permanent_freeze_comment/:id # Permanently freeze a comment
+DELETE /admin/frozen_posts/destroy_stage/:id            # Delete a frozen stage
+DELETE /admin/frozen_posts/destroy_comment/:id          # Delete a frozen comment
 ```
 
 ## Customization
