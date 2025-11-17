@@ -54,7 +54,7 @@
             <tr class="report-row status-<%= report.status %>">
               <td class="image-cell">
                 <% if report.active_storage_attachment.present? %>
-                  <%= image_tag report.active_storage_attachment.blob, class: "admin-thumbnail", style: "max-width: 100px; max-height: 100px;" %>
+                  <%= image_tag url_for(report.active_storage_attachment), class: "admin-thumbnail", style: "max-width: 100px; max-height: 100px;" %>
                 <% else %>
                   <span class="text-muted"><%= t('rails_image_post_solution.admin.index.deleted') %></span>
                 <% end %>
