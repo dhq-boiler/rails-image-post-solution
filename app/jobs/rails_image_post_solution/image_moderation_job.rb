@@ -4,28 +4,28 @@ module RailsImagePostSolution
   class ImageModerationJob < ApplicationJob
     queue_as :default
 
-    # 画像の自動モデレーションを実行するジョブ
-    # OpenAI Vision APIを使用してR18/R18Gコンテンツを検出
+    # Job to perform automatic image moderation
+    # Uses OpenAI Vision API to detect R18/R18G content
     def perform(attachment_id)
       attachment = ActiveStorage::Attachment.find_by(id: attachment_id)
       return unless attachment&.blob
 
-      # OpenAI Vision Serviceを使用して画像を分析
+      # Analyze image using OpenAI Vision Service
       result = OpenaiVisionService.new.moderate_image(attachment)
 
-      # 結果を処理
+      # Process results
       if result[:flagged]
-        # 不適切なコンテンツが検出された場合、自動的に通報を作成
+        # Create automatic report when inappropriate content is detected
         create_auto_report(attachment, result)
 
-        # 投稿を仮凍結（設定で有効な場合）
+        # Temporarily freeze post (if enabled in config)
         freeze_post(attachment, result) if auto_freeze_enabled?
       end
 
       Rails.logger.info "Image moderation completed for attachment ##{attachment_id}: #{result[:flagged] ? 'FLAGGED' : 'OK'}"
     rescue StandardError => e
       Rails.logger.error "Image moderation failed for attachment ##{attachment_id}: #{e.message}"
-      # エラーが発生してもジョブは失敗させない（手動レビューに委ねる）
+      # Don't fail the job on error (leave for manual review)
     end
 
     private
@@ -35,20 +35,20 @@ module RailsImagePostSolution
     end
 
     def create_auto_report(attachment, result)
-      # システムユーザーまたはnilユーザーとして自動通報を作成
-      # 既に自動通報がある場合はスキップ
+      # Create automatic report as system user (nil user_id)
+      # Skip if automatic report already exists
       existing_report = ImageReport.find_by(
         active_storage_attachment_id: attachment.id,
-        user_id: nil # システムによる自動通報
+        user_id: nil # Automatic report by system
       )
 
       return if existing_report
 
       ImageReport.create!(
         active_storage_attachment: attachment,
-        user_id: nil, # システムによる自動通報
+        user_id: nil, # Automatic report by system
         reason: build_auto_report_reason(result),
-        status: ImageReport::STATUSES[:confirmed], # 自動的に確認済み（不適切）にする
+        status: ImageReport::STATUSES[:confirmed], # Automatically set to confirmed (inappropriate)
         reviewed_at: Time.current,
         ai_flagged: result[:flagged],
         ai_confidence: result[:confidence],
@@ -59,12 +59,12 @@ module RailsImagePostSolution
 
     def build_auto_report_reason(result)
       reasons = []
-      reasons << "🤖 自動検出: 不適切なコンテンツが検出されました"
+      reasons << "Auto-detected: Inappropriate content detected"
 
       if result[:categories]
         flagged_categories = result[:categories].select { |_, flagged| flagged }
         if flagged_categories.any?
-          reasons << "\n検出されたカテゴリ:"
+          reasons << "\nDetected categories:"
           flagged_categories.each do |category, _|
             reasons << "  - #{category}"
           end
@@ -72,23 +72,23 @@ module RailsImagePostSolution
       end
 
       if result[:confidence]
-        reasons << "\n信頼度: #{(result[:confidence] * 100).round(1)}%"
+        reasons << "\nConfidence: #{(result[:confidence] * 100).round(1)}%"
       end
 
       reasons.join("\n")
     end
 
-    # 投稿を仮凍結
-    # ホストアプリケーションで freeze_post! メソッドを実装している場合のみ動作
+    # Temporarily freeze post
+    # Only works if host application implements freeze_post! method
     def freeze_post(attachment, result)
       record = attachment.record
       return unless record
       return unless record.respond_to?(:freeze_post!)
 
-      # 既に凍結されている場合はスキップ
+      # Skip if already frozen
       return if record.respond_to?(:frozen?) && record.frozen?
 
-      reason = "🤖 AI自動判定: 不適切なコンテンツが検出されたため、仮凍結されました。\n#{build_auto_report_reason(result)}"
+      reason = "AI Auto-moderation: Post has been temporarily frozen due to inappropriate content detection.\n#{build_auto_report_reason(result)}"
 
       record.freeze_post!(type: :temporary, reason: reason)
       Rails.logger.info "Post #{record.class.name}##{record.id} has been temporarily frozen due to inappropriate content"

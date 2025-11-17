@@ -1,0 +1,93 @@
+<div class="admin-container">
+  <h1 class="admin-header"><%= t('admin.users.index.title') %></h1>
+
+  <!-- Statistics -->
+  <div class="admin-stats">
+    <div class="stat-card">
+      <div class="stat-label"><%= t('admin.users.index.stats.total') %></div>
+      <div class="stat-value"><%= @stats[:total] %></div>
+    </div>
+    <div class="stat-card active">
+      <div class="stat-label"><%= t('admin.users.index.stats.active') %></div>
+      <div class="stat-value"><%= @stats[:active] %></div>
+    </div>
+    <div class="stat-card suspended">
+      <div class="stat-label"><%= t('admin.users.index.stats.suspended') %></div>
+      <div class="stat-value"><%= @stats[:suspended] %></div>
+    </div>
+    <div class="stat-card banned">
+      <div class="stat-label"><%= t('admin.users.index.stats.banned') %></div>
+      <div class="stat-value"><%= @stats[:banned] %></div>
+    </div>
+    <div class="stat-card admin">
+      <div class="stat-label"><%= t('admin.users.index.stats.admin') %></div>
+      <div class="stat-value"><%= @stats[:admin] %></div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="admin-filters">
+    <%= link_to t('admin.users.index.filters.all'), admin_users_path, class: "filter-btn #{'active' if @status_filter == 'all'}" %>
+    <%= link_to t('admin.users.index.filters.active'), admin_users_path(status: 'active'), class: "filter-btn #{'active' if @status_filter == 'active'}" %>
+    <%= link_to t('admin.users.index.filters.suspended'), admin_users_path(status: 'suspended'), class: "filter-btn #{'active' if @status_filter == 'suspended'}" %>
+    <%= link_to t('admin.users.index.filters.banned'), admin_users_path(status: 'banned'), class: "filter-btn #{'active' if @status_filter == 'banned'}" %>
+    <%= link_to t('admin.users.index.filters.admin'), admin_users_path(status: 'admin'), class: "filter-btn #{'active' if @status_filter == 'admin'}" %>
+  </div>
+
+  <!-- User List -->
+  <div class="admin-users-list">
+    <% if @users.any? %>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th><%= t('admin.users.index.table.username') %></th>
+            <th><%= t('admin.users.index.table.email') %></th>
+            <th><%= t('admin.users.index.table.status') %></th>
+            <th><%= t('admin.users.index.table.role') %></th>
+            <th><%= t('admin.users.index.table.registered_at') %></th>
+            <th><%= t('admin.users.index.table.post_count') %></th>
+            <th><%= t('admin.users.index.table.actions') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @users.each do |user| %>
+            <tr class="user-row">
+              <td><%= link_to user.display_name, user_path(user), class: "user-link" %></td>
+              <td><%= user.email.present? ? user.email : "-" %></td>
+              <td>
+                <% if user.banned? %>
+                  <span class="user-status-badge banned"><%= t('admin.users.index.status_badges.banned') %></span>
+                <% elsif user.suspended? %>
+                  <span class="user-status-badge suspended"><%= t('admin.users.index.status_badges.suspended') %></span>
+                <% else %>
+                  <span class="user-status-badge active"><%= t('admin.users.index.status_badges.active') %></span>
+                <% end %>
+              </td>
+              <td>
+                <% if user.admin? %>
+                  <span class="role-badge admin"><%= t('admin.users.index.role_badges.admin') %></span>
+                <% else %>
+                  <span class="role-badge user"><%= t('admin.users.index.role_badges.user') %></span>
+                <% end %>
+              </td>
+              <td><%= l(user.created_at, format: :short) %></td>
+              <td><%= user.stages.count %></td>
+              <td class="actions-cell">
+                <%= link_to t('admin.users.index.detail'), admin_user_path(user), class: "btn-action btn-detail" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="empty-state">
+        <p><%= t('admin.users.index.no_users') %></p>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="admin-actions">
+    <%= link_to t('admin.users.index.view_reports'), admin_image_reports_path, class: "btn btn-secondary" %>
+    <%= link_to t('admin.users.index.back'), root_path, class: "btn btn-default" %>
+  </div>
+</div>

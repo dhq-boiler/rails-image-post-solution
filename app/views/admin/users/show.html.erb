@@ -1,0 +1,198 @@
+<div class="admin-container">
+  <h1 class="admin-header"><%= t('admin.users.show.title', name: @user.display_name) %></h1>
+
+  <!-- User Basic Information -->
+  <div class="detail-section">
+    <h3><%= t('admin.users.show.basic_info') %></h3>
+    <table class="detail-table">
+      <tr>
+        <th><%= t('admin.users.show.username') %></th>
+        <td><%= @user.username %></td>
+      </tr>
+      <tr>
+        <th><%= t('admin.users.show.nickname') %></th>
+        <td><%= @user.nickname.present? ? @user.nickname : "-" %></td>
+      </tr>
+      <tr>
+        <th><%= t('admin.users.show.email') %></th>
+        <td><%= @user.email.present? ? @user.email : "-" %></td>
+      </tr>
+      <tr>
+        <th><%= t('admin.users.show.status') %></th>
+        <td>
+          <% if @user.banned? %>
+            <span class="user-status-badge banned"><%= t('admin.users.index.status_badges.banned') %></span>
+            <div class="status-detail">
+              <strong><%= t('admin.users.show.ban_date') %>:</strong> <%= l(@user.banned_at, format: :long) %><br>
+              <% if @user.ban_reason.present? %>
+                <strong><%= t('admin.users.show.ban_reason') %>:</strong> <%= simple_format(@user.ban_reason) %>
+              <% end %>
+            </div>
+          <% elsif @user.suspended? %>
+            <span class="user-status-badge suspended"><%= t('admin.users.index.status_badges.suspended') %></span>
+            <div class="status-detail">
+              <strong><%= t('admin.users.show.suspension_expiry') %>:</strong> <%= l(@user.suspended_at, format: :long) %><br>
+              <% if @user.suspension_reason.present? %>
+                <strong><%= t('admin.users.show.suspension_reason') %>:</strong> <%= simple_format(@user.suspension_reason) %>
+              <% end %>
+            </div>
+          <% else %>
+            <span class="user-status-badge active"><%= t('admin.users.index.status_badges.active') %></span>
+          <% end %>
+        </td>
+      </tr>
+      <tr>
+        <th><%= t('admin.users.show.role') %></th>
+        <td>
+          <% if @user.admin? %>
+            <span class="role-badge admin"><%= t('admin.users.index.role_badges.admin') %></span>
+          <% else %>
+            <span class="role-badge user"><%= t('admin.users.show.basic_info') == t('admin.users.index.role_badges.user') ? t('admin.users.index.role_badges.user') : t('admin.users.index.role_badges.user') %></span>
+          <% end %>
+        </td>
+      </tr>
+      <tr>
+        <th><%= t('admin.users.show.registered_date') %></th>
+        <td><%= l(@user.created_at, format: :long) %></td>
+      </tr>
+      <tr>
+        <th><%= t('admin.users.show.language') %></th>
+        <td><%= t("languages.#{@user.locale}") %></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Activity Statistics -->
+  <div class="detail-section">
+    <h3><%= t('admin.users.show.activity_stats') %></h3>
+    <table class="detail-table">
+      <tr>
+        <th><%= t('admin.users.show.stage_count') %></th>
+        <td><%= @user.stages.count %><%= t('admin.users.show.count_suffix') %></td>
+      </tr>
+      <tr>
+        <th><%= t('admin.users.show.comment_count') %></th>
+        <td><%= @user.multiplay_recruitment_comments.count %><%= t('admin.users.show.count_suffix') %></td>
+      </tr>
+      <tr>
+        <th><%= t('admin.users.show.reports_made_count') %></th>
+        <td><%= @reports_made.count %><%= t('admin.users.show.count_suffix') %></td>
+      </tr>
+      <tr>
+        <th><%= t('admin.users.show.reports_received_count') %></th>
+        <td><%= @reports_received.count %><%= t('admin.users.show.count_suffix') %></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Recent Stage Posts -->
+  <div class="detail-section">
+    <h3><%= t('admin.users.show.recent_stages') %></h3>
+    <% if @stages.any? %>
+      <ul class="activity-list">
+        <% @stages.each do |stage| %>
+          <li>
+            <%= link_to stage.title, stage_path(stage), class: "activity-link" %>
+            <span class="activity-date"><%= l(stage.created_at, format: :short) %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-muted"><%= t('admin.users.show.no_posts') %></p>
+    <% end %>
+  </div>
+
+  <!-- Recent Comments -->
+  <div class="detail-section">
+    <h3><%= t('admin.users.show.recent_comments') %></h3>
+    <% if @comments.any? %>
+      <ul class="activity-list">
+        <% @comments.each do |comment| %>
+          <li>
+            <%= link_to truncate(comment.content, length: 50), multiplay_recruitment_path(comment.multiplay_recruitment), class: "activity-link" %>
+            <span class="activity-date"><%= l(comment.created_at, format: :short) %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-muted"><%= t('admin.users.show.no_comments') %></p>
+    <% end %>
+  </div>
+
+  <!-- Report History -->
+  <div class="detail-section">
+    <h3><%= t('admin.users.show.report_history') %></h3>
+    <% if @reports_received.any? %>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th><%= t('admin.users.show.reporter') %></th>
+            <th><%= t('admin.users.show.reason') %></th>
+            <th><%= t('admin.users.show.report_status') %></th>
+            <th><%= t('admin.users.show.date') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @reports_received.each do |report| %>
+            <tr>
+              <td><%= link_to report.user.display_name, user_path(report.user), class: "user-link" %></td>
+              <td><%= truncate(report.reason, length: 50) || t('rails_image_post_solution.admin.index.no_reason') %></td>
+              <td>
+                <span class="status-badge status-<%= report.status %>">
+                  <%= t("rails_image_post_solution.image_report.statuses.#{report.status}") %>
+                </span>
+              </td>
+              <td><%= l(report.created_at, format: :short) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="text-muted"><%= t('admin.users.show.no_reports') %></p>
+    <% end %>
+  </div>
+
+  <!-- Admin Actions -->
+  <div class="detail-actions">
+    <h3><%= t('admin.users.show.admin_actions') %></h3>
+
+    <% if @user.active? %>
+      <div class="action-group">
+        <%= form_with url: suspend_admin_user_path(@user), method: :patch, class: "inline-form" do |f| %>
+          <div class="form-group-inline">
+            <%= f.label :duration, "#{t('admin.users.show.suspend_duration')}:" %>
+            <%= f.number_field :duration, value: 7, min: 1, max: 365, class: "form-control-small" %>
+          </div>
+          <div class="form-group-inline">
+            <%= f.label :reason, "#{t('admin.users.show.suspend_reason')}:" %>
+            <%= f.text_area :reason, rows: 2, class: "form-control", placeholder: t('admin.users.show.suspend_reason_placeholder') %>
+          </div>
+          <%= f.submit t('admin.users.show.suspend_button'), class: "btn btn-warning", data: { turbo_confirm: t('admin.users.show.suspend_confirm') } %>
+        <% end %>
+      </div>
+
+      <div class="action-group">
+        <%= form_with url: ban_admin_user_path(@user), method: :patch, class: "inline-form" do |f| %>
+          <div class="form-group-inline">
+            <%= f.label :reason, "#{t('admin.users.show.ban_reason')}:" %>
+            <%= f.text_area :reason, rows: 2, class: "form-control", placeholder: t('admin.users.show.ban_reason_placeholder') %>
+          </div>
+          <%= f.submit t('admin.users.show.ban_button'), class: "btn btn-danger", data: { turbo_confirm: t('admin.users.show.ban_confirm') } %>
+        <% end %>
+      </div>
+    <% elsif @user.suspended? %>
+      <div class="action-group">
+        <%= button_to t('admin.users.show.unsuspend_button'), unsuspend_admin_user_path(@user), method: :patch, class: "btn btn-success", data: { turbo_confirm: t('admin.users.show.unsuspend_confirm') } %>
+      </div>
+    <% elsif @user.banned? %>
+      <div class="action-group">
+        <%= button_to t('admin.users.show.unban_button'), unban_admin_user_path(@user), method: :patch, class: "btn btn-success", data: { turbo_confirm: t('admin.users.show.unban_confirm') } %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="admin-actions">
+    <%= link_to t('admin.users.show.back_to_list'), admin_users_path, class: "btn btn-default" %>
+    <%= link_to t('admin.users.show.view_public_profile'), user_path(@user), class: "btn btn-secondary" %>
+  </div>
+</div>

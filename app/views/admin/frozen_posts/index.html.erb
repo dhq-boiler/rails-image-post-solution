@@ -1,0 +1,128 @@
+<div class="admin-container">
+  <h1 class="admin-header"><%= t('admin.frozen_posts.index.title') %></h1>
+
+  <!-- Statistics -->
+  <div class="admin-stats">
+    <div class="stat-card">
+      <div class="stat-label"><%= t('admin.frozen_posts.index.stats.total') %></div>
+      <div class="stat-value"><%= @stats[:total] %></div>
+    </div>
+    <div class="stat-card temporary">
+      <div class="stat-label"><%= t('admin.frozen_posts.index.stats.temporary') %></div>
+      <div class="stat-value"><%= @stats[:temporary] %></div>
+    </div>
+    <div class="stat-card permanent">
+      <div class="stat-label"><%= t('admin.frozen_posts.index.stats.permanent') %></div>
+      <div class="stat-value"><%= @stats[:permanent] %></div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="admin-filters">
+    <%= link_to t('admin.frozen_posts.index.filters.all'), admin_frozen_posts_path, class: "filter-btn #{'active' if @filter == 'all'}" %>
+    <%= link_to t('admin.frozen_posts.index.filters.temporary'), admin_frozen_posts_path(filter: "temporary"), class: "filter-btn #{'active' if @filter == 'temporary'}" %>
+    <%= link_to t('admin.frozen_posts.index.filters.permanent'), admin_frozen_posts_path(filter: "permanent"), class: "filter-btn #{'active' if @filter == 'permanent'}" %>
+  </div>
+
+  <!-- Frozen Posts List -->
+  <div class="admin-reports-list">
+    <% if @frozen_posts.any? %>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th><%= t('admin.frozen_posts.index.table.type') %></th>
+            <th><%= t('admin.frozen_posts.index.table.content') %></th>
+            <th><%= t('admin.frozen_posts.index.table.poster') %></th>
+            <th><%= t('admin.frozen_posts.index.table.freeze_reason') %></th>
+            <th><%= t('admin.frozen_posts.index.table.status') %></th>
+            <th><%= t('admin.frozen_posts.index.table.frozen_at') %></th>
+            <th><%= t('admin.frozen_posts.index.table.actions') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @frozen_posts.each do |post| %>
+            <tr class="report-row status-<%= post.frozen_type %>">
+              <td>
+                <% if post.is_a?(Stage) %>
+                  <span class="post-type-badge stage"><%= t('admin.frozen_posts.index.post_types.stage') %></span>
+                <% else %>
+                  <span class="post-type-badge comment"><%= t('admin.frozen_posts.index.post_types.comment') %></span>
+                <% end %>
+              </td>
+              <td class="content-cell">
+                <% if post.is_a?(Stage) %>
+                  <div class="post-title"><%= link_to post.title, stage_path(post), target: "_blank", class: "user-link" %></div>
+                  <div class="post-excerpt"><%= truncate(post.description, length: 80) %></div>
+                <% else %>
+                  <div class="post-title">
+                    <%= link_to "#{t('admin.frozen_posts.index.comment_prefix')}: #{post.multiplay_recruitment.title}", multiplay_recruitment_path(post.multiplay_recruitment), target: "_blank", class: "user-link" %>
+                  </div>
+                  <div class="post-excerpt"><%= truncate(post.content, length: 80) %></div>
+                <% end %>
+              </td>
+              <td>
+                <%= link_to post.user.display_name, admin_user_path(post.user), class: "user-link" %>
+              </td>
+              <td class="reason-cell">
+                <%= truncate(post.frozen_reason, length: 100) %>
+              </td>
+              <td>
+                <% if post.temporarily_frozen? %>
+                  <span class="status-badge status-pending"><%= t('admin.frozen_posts.index.status_badges.temporary') %></span>
+                <% elsif post.permanently_frozen? %>
+                  <span class="status-badge status-confirmed"><%= t('admin.frozen_posts.index.status_badges.permanent') %></span>
+                <% end %>
+              </td>
+              <td>
+                <%= l(post.frozen_at, format: :long) %>
+              </td>
+              <td class="actions-cell">
+                <div class="action-buttons">
+                  <% if post.is_a?(Stage) %>
+                    <% unless post.permanently_frozen? %>
+                      <%= button_to t('admin.frozen_posts.index.actions.permanent_freeze'), admin_frozen_posts_permanent_freeze_stage_path(post),
+                          method: :patch,
+                          class: "btn-action btn-warning",
+                          data: { confirm: t('admin.frozen_posts.index.confirm.permanent_freeze') } %>
+                    <% end %>
+                    <%= button_to t('admin.frozen_posts.index.actions.unfreeze'), admin_frozen_posts_unfreeze_stage_path(post),
+                        method: :patch,
+                        class: "btn-action btn-success",
+                        data: { confirm: t('admin.frozen_posts.index.confirm.unfreeze') } %>
+                    <%= button_to t('admin.frozen_posts.index.actions.delete'), admin_frozen_posts_destroy_stage_path(post),
+                        method: :delete,
+                        class: "btn-action btn-danger",
+                        data: { confirm: t('admin.frozen_posts.index.confirm.delete') } %>
+                  <% else %>
+                    <% unless post.permanently_frozen? %>
+                      <%= button_to t('admin.frozen_posts.index.actions.permanent_freeze'), admin_frozen_posts_permanent_freeze_comment_path(post),
+                          method: :patch,
+                          class: "btn-action btn-warning",
+                          data: { confirm: t('admin.frozen_posts.index.confirm.permanent_freeze') } %>
+                    <% end %>
+                    <%= button_to t('admin.frozen_posts.index.actions.unfreeze'), admin_frozen_posts_unfreeze_comment_path(post),
+                        method: :patch,
+                        class: "btn-action btn-success",
+                        data: { confirm: t('admin.frozen_posts.index.confirm.unfreeze') } %>
+                    <%= button_to t('admin.frozen_posts.index.actions.delete'), admin_frozen_posts_destroy_comment_path(post),
+                        method: :delete,
+                        class: "btn-action btn-danger",
+                        data: { confirm: t('admin.frozen_posts.index.confirm.delete') } %>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="empty-state">
+        <p><%= t('admin.frozen_posts.index.no_frozen_posts') %></p>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="admin-actions">
+    <%= link_to t('admin.frozen_posts.index.back'), root_path, class: "btn btn-secondary" %>
+  </div>
+</div>

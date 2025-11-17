@@ -27,11 +27,11 @@
 
   <!-- Filters -->
   <div class="admin-filters">
-    <%= link_to t('rails_image_post_solution.admin.index.filters.all'), rails_image_post_solution.admin_image_reports_path, class: "filter-btn #{'active' if @status_filter == 'all'}" %>
-    <%= link_to t('rails_image_post_solution.admin.index.filters.pending'), rails_image_post_solution.admin_image_reports_path(status: 'pending'), class: "filter-btn #{'active' if @status_filter == 'pending'}" %>
-    <%= link_to t('rails_image_post_solution.admin.index.filters.confirmed'), rails_image_post_solution.admin_image_reports_path(status: 'confirmed'), class: "filter-btn #{'active' if @status_filter == 'confirmed'}" %>
-    <%= link_to t('rails_image_post_solution.admin.index.filters.dismissed'), rails_image_post_solution.admin_image_reports_path(status: 'dismissed'), class: "filter-btn #{'active' if @status_filter == 'dismissed'}" %>
-    <%= link_to t('rails_image_post_solution.admin.index.filters.reviewed'), rails_image_post_solution.admin_image_reports_path(status: 'reviewed'), class: "filter-btn #{'active' if @status_filter == 'reviewed'}" %>
+    <%= link_to t('rails_image_post_solution.admin.index.filters.all'), admin_image_reports_path, class: "filter-btn #{'active' if @status_filter == 'all'}" %>
+    <%= link_to t('rails_image_post_solution.admin.index.filters.pending'), admin_image_reports_path(status: 'pending'), class: "filter-btn #{'active' if @status_filter == 'pending'}" %>
+    <%= link_to t('rails_image_post_solution.admin.index.filters.confirmed'), admin_image_reports_path(status: 'confirmed'), class: "filter-btn #{'active' if @status_filter == 'confirmed'}" %>
+    <%= link_to t('rails_image_post_solution.admin.index.filters.dismissed'), admin_image_reports_path(status: 'dismissed'), class: "filter-btn #{'active' if @status_filter == 'dismissed'}" %>
+    <%= link_to t('rails_image_post_solution.admin.index.filters.reviewed'), admin_image_reports_path(status: 'reviewed'), class: "filter-btn #{'active' if @status_filter == 'reviewed'}" %>
   </div>
 
   <!-- Reports List -->
@@ -59,13 +59,7 @@
                   <span class="text-muted"><%= t('rails_image_post_solution.admin.index.deleted') %></span>
                 <% end %>
               </td>
-              <td>
-                <% if report.user %>
-                  <%= report.user.try(:display_name) || report.user.try(:name) || "Unknown" %>
-                <% else %>
-                  <span class="text-muted"><%= t('rails_image_post_solution.admin.index.system') %></span>
-                <% end %>
-              </td>
+              <td><%= link_to report.user.display_name, user_path(report.user), class: "user-link" %></td>
               <td class="reason-cell"><%= truncate(report.reason, length: 50) || t('rails_image_post_solution.admin.index.no_reason') %></td>
               <td>
                 <span class="status-badge status-<%= report.status %>">
@@ -75,13 +69,13 @@
               <td><%= l(report.created_at, format: :long) %></td>
               <td>
                 <% if report.reviewed_by %>
-                  <%= report.reviewed_by.try(:display_name) || report.reviewed_by.try(:name) || "Unknown" %>
+                  <%= report.reviewed_by.display_name %>
                 <% else %>
                   <span class="text-muted">-</span>
                 <% end %>
               </td>
               <td class="actions-cell">
-                <%= link_to t('rails_image_post_solution.admin.index.detail'), rails_image_post_solution.admin_image_report_path(report), class: "btn-action btn-detail" %>
+                <%= link_to t('rails_image_post_solution.admin.index.detail'), admin_image_report_path(report), class: "btn-action btn-detail" %>
               </td>
             </tr>
           <% end %>
@@ -95,6 +89,6 @@
   </div>
 
   <div class="admin-actions">
-    <%= link_to t('rails_image_post_solution.admin.index.back'), main_app.root_path, class: "btn btn-secondary" %>
+    <%= link_to t('rails_image_post_solution.admin.index.back'), root_path, class: "btn btn-secondary" %>
   </div>
 </div>

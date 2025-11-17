@@ -13,7 +13,7 @@ module RailsImagePostSolution
         @reports = ImageReport.includes(:user, :active_storage_attachment, :reviewed_by)
                              .recent
 
-        # ステータスでフィルタリング
+        # Filter by status
         case @status_filter
         when "pending"
           @reports = @reports.pending
@@ -27,7 +27,7 @@ module RailsImagePostSolution
 
         @reports = @reports.limit(100)
 
-        # 統計情報
+        # Statistics
         @stats = {
           total: ImageReport.count,
           pending: ImageReport.pending.count,
@@ -52,7 +52,7 @@ module RailsImagePostSolution
           reviewed_at: Time.current
         )
 
-        redirect_to admin_image_reports_path, notice: "通報を確認済みにしました（不適切と判定）"
+        redirect_to admin_image_reports_path, notice: I18n.t("rails_image_post_solution.flash.admin.report_confirmed")
       end
 
       def dismiss
@@ -62,7 +62,7 @@ module RailsImagePostSolution
           reviewed_at: Time.current
         )
 
-        redirect_to admin_image_reports_path, notice: "通報を却下しました（問題なし）"
+        redirect_to admin_image_reports_path, notice: I18n.t("rails_image_post_solution.flash.admin.report_dismissed")
       end
 
       private
@@ -70,22 +70,22 @@ module RailsImagePostSolution
       def set_report
         @report = ImageReport.find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        redirect_to admin_image_reports_path, alert: "通報が見つかりません"
+        redirect_to admin_image_reports_path, alert: I18n.t("rails_image_post_solution.flash.admin.report_not_found")
       end
 
       def require_admin
         admin_check = RailsImagePostSolution.configuration&.admin_check_method || :admin?
 
         unless current_user.respond_to?(admin_check) && current_user.public_send(admin_check)
-          redirect_to main_app.root_path, alert: "管理者のみアクセス可能です"
+          redirect_to main_app.root_path, alert: I18n.t("rails_image_post_solution.flash.admin.admin_access_only")
         end
       end
 
       def require_login
-        # ホストアプリケーションで実装されている認証メソッドを呼び出す
+        # Call authentication method implemented in host application
         return if respond_to?(:current_user) && current_user
 
-        redirect_to main_app.root_path, alert: "ログインが必要です"
+        redirect_to main_app.root_path, alert: I18n.t("rails_image_post_solution.flash.admin.login_required")
       end
     end
   end

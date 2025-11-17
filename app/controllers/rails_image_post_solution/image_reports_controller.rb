@@ -6,7 +6,7 @@ module RailsImagePostSolution
     before_action :set_attachment, only: :create
 
     def create
-      # 既に通報済みかチェック
+      # Check if already reported
       existing_report = ImageReport.find_by(
         active_storage_attachment_id: @attachment.id,
         user_id: current_user.id
@@ -14,8 +14,8 @@ module RailsImagePostSolution
 
       if existing_report
         respond_to do |format|
-          format.json { render json: { error: "既にこの画像を通報しています" }, status: :unprocessable_entity }
-          format.html { redirect_back fallback_location: root_path, alert: "既にこの画像を通報しています" }
+          format.json { render json: { error: I18n.t("rails_image_post_solution.flash.already_reported") }, status: :unprocessable_entity }
+          format.html { redirect_back fallback_location: root_path, alert: I18n.t("rails_image_post_solution.flash.already_reported") }
         end
         return
       end
@@ -28,14 +28,14 @@ module RailsImagePostSolution
       )
 
       if @report.save
-        # 最初の通報時のみ、画像のモデレーションを実行
+        # Run image moderation only on first report
         if ImageReport.where(active_storage_attachment_id: @attachment.id).count == 1
           ImageModerationJob.perform_later(@attachment.id)
         end
 
         respond_to do |format|
-          format.json { render json: { success: true, message: "通報を受け付けました" }, status: :created }
-          format.html { redirect_back fallback_location: root_path, notice: "通報を受け付けました" }
+          format.json { render json: { success: true, message: I18n.t("rails_image_post_solution.flash.report_received") }, status: :created }
+          format.html { redirect_back fallback_location: root_path, notice: I18n.t("rails_image_post_solution.flash.report_received") }
         end
       else
         respond_to do |format|
@@ -51,18 +51,18 @@ module RailsImagePostSolution
       @attachment = ActiveStorage::Attachment.find(params[:attachment_id])
     rescue ActiveRecord::RecordNotFound
       respond_to do |format|
-        format.json { render json: { error: "画像が見つかりません" }, status: :not_found }
-        format.html { redirect_back fallback_location: root_path, alert: "画像が見つかりません" }
+        format.json { render json: { error: I18n.t("rails_image_post_solution.flash.image_not_found") }, status: :not_found }
+        format.html { redirect_back fallback_location: root_path, alert: I18n.t("rails_image_post_solution.flash.image_not_found") }
       end
     end
 
     def require_login
-      # ホストアプリケーションで実装されている認証メソッドを呼び出す
+      # Call authentication method implemented in host application
       return if respond_to?(:current_user) && current_user
 
       respond_to do |format|
-        format.json { render json: { error: "ログインが必要です" }, status: :unauthorized }
-        format.html { redirect_to main_app.root_path, alert: "ログインが必要です" }
+        format.json { render json: { error: I18n.t("rails_image_post_solution.flash.login_required") }, status: :unauthorized }
+        format.html { redirect_to main_app.root_path, alert: I18n.t("rails_image_post_solution.flash.login_required") }
       end
     end
   end

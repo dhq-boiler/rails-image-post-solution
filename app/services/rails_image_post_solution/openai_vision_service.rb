@@ -2,42 +2,42 @@
 
 module RailsImagePostSolution
   class OpenaiVisionService
-    # OpenAI Vision APIを使用して画像のコンテンツモデレーションを実行
+    # Perform image content moderation using OpenAI Vision API
 
     def initialize
       api_key = RailsImagePostSolution.configuration&.openai_api_key || ENV["OPENAI_API_KEY"]
       @client = OpenAI::Client.new(access_token: api_key) if api_key.present?
     end
 
-    # 画像を分析してR18/R18Gコンテンツを検出
-    # @param attachment [ActiveStorage::Attachment] 分析する画像
-    # @return [Hash] 分析結果 { flagged: Boolean, categories: Hash, confidence: Float, raw_response: Hash }
+    # Analyze image to detect R18/R18G content
+    # @param attachment [ActiveStorage::Attachment] Image to analyze
+    # @return [Hash] Analysis result { flagged: Boolean, categories: Hash, confidence: Float, raw_response: Hash }
     def moderate_image(attachment)
-      # OpenAI APIキーが設定されていない場合はスキップ
+      # Skip if OpenAI API key is not configured
       return safe_result unless @client
 
-      # 画像URLを取得（一時的なURLを生成）
+      # Get image URL (generate temporary URL)
       image_url = get_image_url(attachment)
       return safe_result unless image_url
 
-      # OpenAI Vision APIを呼び出し
+      # Call OpenAI Vision API
       response = call_vision_api(image_url)
 
-      # レスポンスを解析
+      # Parse response
       parse_response(response)
     rescue StandardError => e
       Rails.logger.error "OpenAI Vision API error: #{e.message}"
-      safe_result # エラー時は安全側に倒す（フラグなし）
+      safe_result # Fail safe on error (no flag)
     end
 
     private
 
     def get_image_url(attachment)
       # Rails.application.routes.url_helpers.rails_blob_url(attachment, only_path: false)
-      # 開発環境ではローカルURLが使えないので、Base64エンコードを使用
+      # Use Base64 encoding as local URLs don't work in development environment
       return nil unless attachment.blob
 
-      # 画像をBase64エンコード
+      # Encode image as Base64
       image_data = attachment.blob.download
       base64_image = Base64.strict_encode64(image_data)
       "data:#{attachment.blob.content_type};base64,#{base64_image}"
@@ -49,7 +49,7 @@ module RailsImagePostSolution
     def call_vision_api(image_url)
       @client.chat(
         parameters: {
-          model: "gpt-4o-mini", # 画像分析が可能なモデル
+          model: "gpt-4o-mini", # Model capable of image analysis
           messages: [
             {
               role: "user",
@@ -74,13 +74,13 @@ module RailsImagePostSolution
 
     def moderation_prompt
       <<~PROMPT
-        この画像を分析して、以下のカテゴリに該当するかどうかを判定してください：
+        Analyze this image and determine if it falls into any of the following categories:
 
-        1. R18（成人向けコンテンツ）：性的な表現や裸体が含まれる
-        2. R18G（グロテスクなコンテンツ）：暴力的、残酷、血まみれの表現が含まれる
-        3. 違法コンテンツ：違法薬物、武器の不適切な使用など
+        1. R18 (Adult Content): Contains sexual expression or nudity
+        2. R18G (Grotesque Content): Contains violent, cruel, or gory imagery
+        3. Illegal Content: Illegal drugs, inappropriate use of weapons, etc.
 
-        以下のJSON形式で回答してください：
+        Please respond in the following JSON format:
         {
           "flagged": true/false,
           "categories": {
@@ -89,10 +89,10 @@ module RailsImagePostSolution
             "illegal": true/false
           },
           "confidence": 0.0-1.0,
-          "reason": "判定理由の簡潔な説明"
+          "reason": "Brief explanation of the determination"
         }
 
-        **重要**: JSON形式のみで回答し、他の文章は含めないでください。
+        **Important**: Respond only in JSON format, do not include any other text.
       PROMPT
     end
 
@@ -100,7 +100,7 @@ module RailsImagePostSolution
       content = response.dig("choices", 0, "message", "content")
       return safe_result unless content
 
-      # JSONレスポンスをパース
+      # Parse JSON response
       result = JSON.parse(content)
 
       {
