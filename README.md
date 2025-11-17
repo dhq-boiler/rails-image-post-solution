@@ -4,6 +4,7 @@ A comprehensive Rails engine for image reporting, AI-powered moderation using Op
 
 ## Features
 
+### Core Features
 - **Image Reporting System**: Allow users to report inappropriate images
 - **AI-Powered Moderation**: Automatic content moderation using OpenAI Vision API
   - Detects R18 (adult content)
@@ -14,10 +15,15 @@ A comprehensive Rails engine for image reporting, AI-powered moderation using Op
 - **i18n Support**: Japanese and English locales included
 - **Highly Configurable**: Customize behavior to fit your application
 
+### Extended Admin Features (Optional)
+- **User Management**: Suspend, ban, and manage users
+- **Frozen Posts Management**: Review, unfreeze, or permanently freeze flagged content
+- **Enhanced Reporting**: Extended admin views with detailed statistics
+
 ## Requirements
 
-- Ruby >= 3.2.0
-- Rails >= 7.0
+- Ruby >= 3.4.7
+- Rails >= 8.1
 - Active Storage
 - OpenAI API key (for AI moderation features)
 
@@ -90,7 +96,15 @@ export OPENAI_API_KEY=sk-...
 
 ### User Reporting
 
-Users can report images via POST request:
+The gem provides shared view partials for easy integration:
+
+```erb
+<%# In your view %>
+<%= render 'shared/image_report_button', image: @attachment %>
+<%= render 'shared/image_report_modal' %>
+```
+
+Or manually via POST request:
 
 ```ruby
 # In your view
@@ -112,6 +126,12 @@ fetch('/moderation/image_reports', {
   })
 });
 ```
+
+The provided partials include:
+- `_image_report_button.html.erb` - Report button with status display
+- `_image_report_modal.html.erb` - Modal dialog for submitting reports with category selection
+
+**Note**: The partials reference Stimulus controllers (`image-report`). You'll need to implement the corresponding Stimulus controller in your application or use the manual POST method above.
 
 ### Admin Dashboard
 
@@ -144,17 +164,43 @@ To enable automatic post freezing, add a `freeze_post!` method to your models th
 class Post < ApplicationRecord
   has_many_attached :images
 
+  # Scopes for frozen posts management
+  scope :frozen, -> { where.not(frozen_at: nil) }
+  scope :temporarily_frozen, -> { frozen.where(frozen_type: "temporary") }
+  scope :permanently_frozen, -> { frozen.where(frozen_type: "permanent") }
+  scope :recent, -> { order(created_at: :desc) }
+
   def freeze_post!(type:, reason:)
     update!(
-      frozen: true,
       frozen_type: type,
       frozen_reason: reason,
       frozen_at: Time.current
     )
   end
 
+  def unfreeze!
+    update!(
+      frozen_type: nil,
+      frozen_reason: nil,
+      frozen_at: nil
+    )
+  end
+
   def frozen?
-    frozen == true
+    frozen_at.present?
+  end
+end
+```
+
+Add the required columns to your model:
+
+```ruby
+class AddFrozenFieldsToPosts < ActiveRecord::Migration[8.1]
+  def change
+    add_column :posts, :frozen_type, :string
+    add_column :posts, :frozen_reason, :text
+    add_column :posts, :frozen_at, :datetime
+    add_index :posts, :frozen_at
   end
 end
 ```
@@ -183,6 +229,69 @@ class User < ApplicationRecord
 end
 ```
 
+### Additional User Model Methods (for Extended Features)
+
+If you plan to use the extended admin features (user management, frozen posts), add these methods to your User model:
+
+```ruby
+class User < ApplicationRecord
+  # Status check methods
+  def active?
+    !suspended? && !banned?
+  end
+
+  def suspended?
+    suspended_until.present? && suspended_until > Time.current
+  end
+
+  def banned?
+    banned_at.present?
+  end
+
+  # User management methods
+  def suspend!(reason:, duration: 7.days)
+    update!(
+      suspended_until: Time.current + duration,
+      suspension_reason: reason
+    )
+  end
+
+  def unsuspend!
+    update!(
+      suspended_until: nil,
+      suspension_reason: nil
+    )
+  end
+
+  def ban!(reason:)
+    update!(
+      banned_at: Time.current,
+      ban_reason: reason
+    )
+  end
+
+  def unban!
+    update!(
+      banned_at: nil,
+      ban_reason: nil
+    )
+  end
+end
+```
+
+And add the corresponding database columns:
+
+```ruby
+class AddModerationFieldsToUsers < ActiveRecord::Migration[8.1]
+  def change
+    add_column :users, :suspended_until, :datetime
+    add_column :users, :suspension_reason, :text
+    add_column :users, :banned_at, :datetime
+    add_column :users, :ban_reason, :text
+  end
+end
+```
+
 ## Routes
 
 The engine provides the following routes:
@@ -194,6 +303,50 @@ GET    /moderation/admin/image_reports/:id              # View report details
 PATCH  /moderation/admin/image_reports/:id/confirm      # Mark as inappropriate
 PATCH  /moderation/admin/image_reports/:id/dismiss      # Mark as safe
 ```
+
+### Extended Admin Features (Optional)
+
+The gem includes additional admin controllers for extended functionality. To use these, add the following routes to your `config/routes.rb`:
+
+```ruby
+namespace :admin do
+  # User management
+  resources :users, only: [:index, :show] do
+    member do
+      post :suspend
+      post :unsuspend
+      post :ban
+      post :unban
+    end
+  end
+
+  # Frozen posts management
+  resources :frozen_posts, only: [:index] do
+    collection do
+      post 'unfreeze_stage/:id', action: :unfreeze_stage, as: :unfreeze_stage
+      post 'unfreeze_comment/:id', action: :unfreeze_comment, as: :unfreeze_comment
+      post 'permanent_freeze_stage/:id', action: :permanent_freeze_stage, as: :permanent_freeze_stage
+      post 'permanent_freeze_comment/:id', action: :permanent_freeze_comment, as: :permanent_freeze_comment
+      delete 'destroy_stage/:id', action: :destroy_stage, as: :destroy_stage
+      delete 'destroy_comment/:id', action: :destroy_comment, as: :destroy_comment
+    end
+  end
+
+  # Extended image reports (alternative to engine's admin controller)
+  resources :image_reports, only: [:index, :show] do
+    member do
+      patch :confirm
+      patch :dismiss
+    end
+  end
+end
+```
+
+These extended features include:
+
+- **User Management**: Suspend, unsuspend, ban, and unban users
+- **Frozen Posts Management**: View, unfreeze, permanently freeze, or delete frozen posts
+- **Enhanced Image Reports**: Additional views and functionality for managing image reports
 
 ## Customization
 
