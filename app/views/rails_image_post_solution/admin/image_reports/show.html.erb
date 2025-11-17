@@ -7,7 +7,7 @@
       <h3><%= t('rails_image_post_solution.admin.show.reported_image') %></h3>
       <% if @attachment.present? %>
         <div class="reported-image-container">
-          <%= image_tag url_for(@attachment), class: "reported-image-large", style: "max-width: 800px; max-height: 600px;" %>
+          <%= image_tag main_app.rails_blob_path(@attachment, only_path: true), class: "reported-image-large", style: "max-width: 800px; max-height: 600px;" %>
         </div>
       <% else %>
         <p class="text-muted"><%= t('rails_image_post_solution.admin.show.image_deleted') %></p>
