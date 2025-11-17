@@ -9,6 +9,9 @@ module RailsImagePostSolution
     # Explicitly set engine root
     config.root = File.expand_path("../..", __dir__)
 
+    # Add engine's view paths
+    config.paths["app/views"] << root.join("app/views")
+
     # Eager load engine classes to ensure they're available
     config.eager_load_paths += %W[
       #{root}/app/controllers
