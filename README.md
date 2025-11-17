@@ -94,7 +94,7 @@ Users can report images via POST request:
 
 ```ruby
 # In your view
-<%= button_to "通報", rails_image_post_solution.image_reports_path(attachment_id: @image.id, reason: "Inappropriate content"), method: :post %>
+<%= button_to "Report", rails_image_post_solution.image_reports_path(attachment_id: @image.id, reason: "Inappropriate content"), method: :post %>
 ```
 
 Or via JavaScript:
