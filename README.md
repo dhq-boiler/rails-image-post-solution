@@ -62,7 +62,12 @@ Mount the engine in your `config/routes.rb`:
 
 ```ruby
 Rails.application.routes.draw do
+  # Mount at /moderation - admin routes will be at /moderation/admin/image_reports
   mount RailsImagePostSolution::Engine => "/moderation"
+
+  # Or mount at root - admin routes will be at /admin/image_reports
+  # mount RailsImagePostSolution::Engine => "/"
+
   # ... your other routes
 end
 ```
@@ -294,7 +299,7 @@ end
 
 ## Routes
 
-The engine provides the following routes:
+The engine provides the following routes (assuming mounted at `/moderation`):
 
 ```
 POST   /moderation/image_reports                        # Create report
@@ -302,51 +307,16 @@ GET    /moderation/admin/image_reports                  # List all reports
 GET    /moderation/admin/image_reports/:id              # View report details
 PATCH  /moderation/admin/image_reports/:id/confirm      # Mark as inappropriate
 PATCH  /moderation/admin/image_reports/:id/dismiss      # Mark as safe
+GET    /moderation/admin/users                          # List all users
+GET    /moderation/admin/users/:id                      # View user details
+POST   /moderation/admin/users/:id/suspend              # Suspend user
+POST   /moderation/admin/users/:id/unsuspend            # Unsuspend user
+POST   /moderation/admin/users/:id/ban                  # Ban user
+POST   /moderation/admin/users/:id/unban                # Unban user
+GET    /moderation/admin/frozen_posts                   # List frozen posts
 ```
 
-### Extended Admin Features (Optional)
-
-The gem includes additional admin controllers for extended functionality. To use these, add the following routes to your `config/routes.rb`:
-
-```ruby
-namespace :admin do
-  # User management
-  resources :users, only: [:index, :show] do
-    member do
-      post :suspend
-      post :unsuspend
-      post :ban
-      post :unban
-    end
-  end
-
-  # Frozen posts management
-  resources :frozen_posts, only: [:index] do
-    collection do
-      post 'unfreeze_stage/:id', action: :unfreeze_stage, as: :unfreeze_stage
-      post 'unfreeze_comment/:id', action: :unfreeze_comment, as: :unfreeze_comment
-      post 'permanent_freeze_stage/:id', action: :permanent_freeze_stage, as: :permanent_freeze_stage
-      post 'permanent_freeze_comment/:id', action: :permanent_freeze_comment, as: :permanent_freeze_comment
-      delete 'destroy_stage/:id', action: :destroy_stage, as: :destroy_stage
-      delete 'destroy_comment/:id', action: :destroy_comment, as: :destroy_comment
-    end
-  end
-
-  # Extended image reports (alternative to engine's admin controller)
-  resources :image_reports, only: [:index, :show] do
-    member do
-      patch :confirm
-      patch :dismiss
-    end
-  end
-end
-```
-
-These extended features include:
-
-- **User Management**: Suspend, unsuspend, ban, and unban users
-- **Frozen Posts Management**: View, unfreeze, permanently freeze, or delete frozen posts
-- **Enhanced Image Reports**: Additional views and functionality for managing image reports
+If you mount the engine at root (`/`), remove the `/moderation` prefix from all paths.
 
 ## Customization
 
