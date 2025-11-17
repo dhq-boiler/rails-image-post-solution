@@ -6,6 +6,19 @@ module RailsImagePostSolution
   class Engine < ::Rails::Engine
     isolate_namespace RailsImagePostSolution
 
+    # Explicitly set engine root
+    config.root = File.expand_path('../..', __dir__)
+
+    # Load routes when engine is initialized
+    config.after_initialize do
+      routes_path = RailsImagePostSolution::Engine.root.join("config", "routes.rb")
+      if File.exist?(routes_path)
+        RailsImagePostSolution::Engine.class_eval do
+          load routes_path
+        end
+      end
+    end
+
     config.generators do |g|
       g.test_framework :rspec
       g.fixture_replacement :factory_bot
